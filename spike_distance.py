@@ -28,8 +28,8 @@ def stdistance(spiketrain_a, spiketrain_b, cost):
             temp = abs((spiketrain_a[m]) - (spiketrain_b[l]))
             cost_c = matrix[m - 1][l - 1] + (cost * temp)
             matrix[m][l] = min(cost_a, cost_b, cost_c)
-    D_spike = matrix[num_spike_i - 1][num_spike_j - 1]
-    return D_spike
+    d_spike = matrix[num_spike_i - 1][num_spike_j - 1]
+    return d_spike
 
 
 
