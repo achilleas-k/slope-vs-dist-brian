@@ -5,6 +5,7 @@ from brian import *
 from brian.tools.datamanager import *
 import os
 
+
 def multidist(all_spikes, cost):
     count=len(all_spikes)
     distances=[]
@@ -13,6 +14,7 @@ def multidist(all_spikes, cost):
             dist=stdistance(all_spikes[i], all_spikes[j], cost)
             distances.append(dist)
     return mean(distances)
+
 
 def stdistance(spiketrain_a, spiketrain_b, cost):
     num_spike_i=len(spiketrain_a)      #num of spikes for the first spike train
@@ -33,7 +35,6 @@ def stdistance(spiketrain_a, spiketrain_b, cost):
             matrix[m][l]=min(cost_a,cost_b,cost_c)
     D_spike=matrix[num_spike_i-1][num_spike_j-1]
     return D_spike
-
 
 
 if __name__=='__main__':
