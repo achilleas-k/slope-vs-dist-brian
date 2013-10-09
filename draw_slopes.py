@@ -1,3 +1,5 @@
+import os
+import numpy as np
 import neurotools as nt
 
 '''
@@ -23,3 +25,26 @@ Assumed data format:
                             - should be common across all .npz files in a directory
         seed:           random seed for simulation
 '''
+
+
+def load_file(filename):
+    if not filename.endswith('.npz'):
+        print "%s doesn't have .npz extension. Is it a .npz file?"
+        return None
+    npz_data = np.load(filename)
+    data = {}
+    for k in data.keys():
+        data[k] = npz_data[k]
+    return data
+
+def load_directory(dirname):
+    filenames = os.listdir(dirname)
+    npzfiles = [fname for fname in filenames if not fname.endswith('.npz')]
+    dirdata = {}
+    for fname in npzfiles:
+        data = load_file(fname)
+        dirdata[fname] = data
+    return dirdata
+
+
+
