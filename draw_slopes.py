@@ -38,6 +38,7 @@ def load_file(filename):
         data[k] = npz_data[k]
     return data
 
+
 def load_directory(dirname):
     filenames = os.listdir(dirname)
     npzfiles = [fname for fname in filenames if fname.endswith('.npz')]
@@ -46,6 +47,7 @@ def load_directory(dirname):
         data = load_file(os.path.join(dirname,fname))
         dirdata[fname] = data
     return dirdata
+
 
 def calc_slopes(data):
     """
@@ -64,6 +66,7 @@ def calc_slopes(data):
         mslopes.append(_mslope)
     data['mslopes'] = mslopes
     return data
+
 
 def plot_slopes(data):
     if not data.has_key('mslopes'):
