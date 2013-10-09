@@ -56,7 +56,11 @@ def calc_slopes(data):
     mem = data['mem']
     mslopes = []
     for m, s in zip(mem, spikes.itervalues()):
-        _mslope, ign = nt.norm_firing_slope(m, s, 15*mV, 10*ms, w=2*ms)
+        if len(s) == 0:
+            print("No spikes: Skipping")
+            _mslope = 0
+        else:
+            _mslope, ign = nt.norm_firing_slope(m, s, 15*mV, 10*ms, w=2*ms)
         mslopes.append(_mslope)
     data['mslopes'] = mslopes
     return data
