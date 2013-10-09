@@ -15,19 +15,20 @@ t_refr = 2*ms
 v_reset = 0*mV
 V0 = 0*mV
 
+
 def genInputGroups(N_in, f_in, S_in, sigma, duration):
     N_sync = int(N_in*S_in)
     N_rand = N_in-N_sync
-    syncGroup = PoissonGroup(0, 0) # dummy nrngrp
+    syncGroup = PoissonGroup(0, 0)  # dummy nrngrp
     randGroup = PoissonGroup(0, 0)
     if N_sync:
         pulse_intervals = []
         while sum(pulse_intervals)*second < duration:
             interval = rnd.expovariate(f_in)+dt
             pulse_intervals.append(interval)
-        pulse_times = cumsum(pulse_intervals[:-1]) # ignore last one
+        pulse_times = cumsum(pulse_intervals[:-1])  # drop last one
         sync_spikes = []
-        pp = PulsePacket(0*second, 1, 0*second) # dummy pp
+        pp = PulsePacket(0*second, 1, 0*second)  # dummy pp
         for pt in pulse_times:
             try:
                 pp.generate(t=pt*second, n=N_sync, sigma=sigma*ms)
@@ -39,7 +40,8 @@ def genInputGroups(N_in, f_in, S_in, sigma, duration):
     if N_rand:
         randGroup = PoissonGroup(N_rand, rates=f_in)
 
-    return (syncGroup, randGroup)
+    return syncGroup, randGroup
+
 
 def lifsim(N_in, f_out, w_in, report):
     clear(True)

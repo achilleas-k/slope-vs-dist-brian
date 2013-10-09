@@ -16,6 +16,7 @@ t_refr = 2*ms
 v_reset = 0*mV
 V0 = 0*mV
 
+
 def genInputGroups(N_in, f_in, S_in, sigma, duration):
     N_sync = int(N_in*S_in)
     N_rand = N_in-N_sync
@@ -42,6 +43,7 @@ def genInputGroups(N_in, f_in, S_in, sigma, duration):
 
     return (syncGroup, randGroup)
 
+
 def lifsim(N_in, f_out, w_in, report):
     clear(True)
     gc.collect()
@@ -57,8 +59,8 @@ def lifsim(N_in, f_out, w_in, report):
     eqs = Equations('dV/dt = -(V-V0)/tau : volt')
     eqs.prepare()
     nrngrp = NeuronGroup(len(input_configs), eqs, threshold='V>V_th',
-                                                    refractory=t_refr,
-                                                    reset='V=v_reset')
+                         refractory=t_refr,
+                         reset='V=v_reset')
     nrngrp.V = V0
     simnetwork = Network(nrngrp)
     syncGroups = []
@@ -69,7 +71,7 @@ def lifsim(N_in, f_out, w_in, report):
     randMons = []
     idx = 0
     # TODO: estimate input rate
-    f_in = f_out
+    f_in = calibrate_frequencies(nrngrp, input_configs, f_out)
     for S_in, sigma in input_configs:
             sg, rg = genInputGroups(N_in, f_in, S_in, sigma, duration)
             syncGroups.append(sg)
@@ -105,30 +107,30 @@ def lifsim(N_in, f_out, w_in, report):
         input_spikes.append(input_spikes_idx)
     filename = os.path.join('data', 'data_%i_%i_%f.npz' % (N_in, f_in, w_in))
     np.savez(filename,
-            N_in=N_in,
-            f_in=f_in,
-            f_out=f_out,
-            w_in=w_in,
-            mem=mem_mon.values,
-            spikes=st_mon.spiketimes,
-            duration=defaultclock.t,
-            seed=seed,
-            input_configs=input_configs,
-            input_spikes=input_spikes,
-            )
+             N_in=N_in,
+             f_in=f_in,
+             f_out=f_out,
+             w_in=w_in,
+             mem=mem_mon.values,
+             spikes=st_mon.spiketimes,
+             duration=defaultclock.t,
+             seed=seed,
+             input_configs=input_configs,
+             input_spikes=input_spikes,
+             )
 
     return {
-            'N_in': N_in,
-            'f_in': f_in,
-            'f_out': f_out,
-            'w_in': w_in,
-            'mem': mem_mon.values,
-            'spikes': st_mon.spiketimes,
-            'duration': defaultclock.t,
-            'seed': seed,
-            'input_configs': input_configs,
-            'input_spikes': input_spikes,
-            }
+        'N_in': N_in,
+        'f_in': f_in,
+        'f_out': f_out,
+        'w_in': w_in,
+        'mem': mem_mon.values,
+        'spikes': st_mon.spiketimes,
+        'duration': defaultclock.t,
+        'seed': seed,
+        'input_configs': input_configs,
+        'input_spikes': input_spikes,
+        }
 
 if __name__=='__main__':
     data_dir = 'data_for_metric_comparison'
