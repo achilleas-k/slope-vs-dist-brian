@@ -1,5 +1,3 @@
-__author__ = 'achilleas'
-
 import neurotools as nt
 
 '''
