@@ -1,12 +1,13 @@
 from brian import *
 from brian.tools.taskfarm import *
 from brian.tools.datamanager import *
-import sys
+import os
 import gc
 from time import time
 import itertools
 import random as rnd
 import zipfile
+import neurotools as nt
 
 duration = 3*second
 defaultclock.dt = dt = 0.1*ms
@@ -15,33 +16,6 @@ tau = 10*ms
 t_refr = 2*ms
 v_reset = 0*mV
 V0 = 0*mV
-
-
-def genInputGroups(N_in, f_in, S_in, sigma, duration):
-    N_sync = int(N_in*S_in)
-    N_rand = N_in-N_sync
-    syncGroup = PoissonGroup(0, 0) # dummy nrngrp
-    randGroup = PoissonGroup(0, 0)
-    if N_sync:
-        pulse_intervals = []
-        while sum(pulse_intervals)*second < duration:
-            interval = rnd.expovariate(f_in)+dt
-            pulse_intervals.append(interval)
-        pulse_times = cumsum(pulse_intervals[:-1]) # ignore last one
-        sync_spikes = []
-        pp = PulsePacket(0*second, 1, 0*second) # dummy pp
-        for pt in pulse_times:
-            try:
-                pp.generate(t=pt*second, n=N_sync, sigma=sigma*ms)
-                sync_spikes.extend(pp.spiketimes)
-            except ValueError:
-                continue
-        syncGroup = SpikeGeneratorGroup(N=N_sync, spiketimes=sync_spikes)
-
-    if N_rand:
-        randGroup = PoissonGroup(N_rand, rates=f_in)
-
-    return (syncGroup, randGroup)
 
 
 def lifsim(N_in, f_out, w_in, report):
@@ -69,11 +43,9 @@ def lifsim(N_in, f_out, w_in, report):
     randConns = []
     syncMons = []
     randMons = []
-    idx = 0
-    # TODO: estimate input rate
-    f_in = calibrate_frequencies(nrngrp, input_configs, f_out)
-    for S_in, sigma in input_configs:
-            sg, rg = genInputGroups(N_in, f_in, S_in, sigma, duration)
+    f_in = nt.calibrate_frequencies(nrngrp, N_in, w_in, input_configs, f_out)
+    for idx, (S_in, sigma) in enumerate(input_configs):
+            sg, rg = nt.genInputGroups(N_in, f_in, S_in, sigma, duration)
             syncGroups.append(sg)
             randGroups.append(rg)
             sm = SpikeMonitor(sg)
@@ -89,7 +61,6 @@ def lifsim(N_in, f_out, w_in, report):
                 rConn = Connection(rg, nrngrp[idx], state='V', weight=w_in)
                 randConns.append(rConn)
                 simnetwork.add(rg, rConn)
-            idx += 1
 
     mem_mon = StateMonitor(nrngrp, 'V', record=True)
     st_mon = SpikeMonitor(nrngrp)
@@ -137,14 +108,15 @@ if __name__=='__main__':
     data = DataManager(data_dir)
     os.mkdir('data')
     print('\n')
-    N_in = [50, 100, 150]
-    f_out = [70, 150, 200, 250, 300, 350]
-    w_in = [0.5, 1.0, 1.5]
+    N_in = [100]
+    f_out = [100]
+    w_in = [0.5]
     params_prod = itertools.product(N_in, f_out, w_in)
     nsims = len(N_in)*len(f_out)*len(w_in)
     print("Simulations configured. Running ...")
-    run_tasks(data, lifsim, params_prod, gui=False,
-                                    poolsize=0, numitems=nsims)
+    #run_tasks(data, lifsim, params_prod, gui=False,
+    #                                poolsize=1, numitems=nsims)
+    lifsim(100, 100, 0.5, None)
     print("Simulations done!")
     print("Creating data zip ...")
     zip = zipfile.ZipFile('data.zip', 'w')
