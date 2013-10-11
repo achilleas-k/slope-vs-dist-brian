@@ -26,12 +26,20 @@ def lifsim(N_in, f_out, w_in, report):
     f_out = f_out*Hz
     w_in = w_in*mV
     input_configs = []
-    for sigma in frange(0, 4, 0.5):
+    for sigma in frange(0, 4, 2.0):
         for S_in in frange(0, 1, 0.2):
             input_configs.append((S_in, sigma))
     np.random.seed(seed)
     eqs = Equations('dV/dt = -(V-V0)/tau : volt')
     eqs.prepare()
+    neurondef = {
+            'eqs': eqs,
+            'V_th': V_th,
+            'refr': t_refr,
+            'reset': v_reset
+            }
+    f_in = nt.calibrate_frequencies(neurondef, N_in, w_in, input_configs, f_out)
+    print("Input calibration complete. Starting simulation ...")
     nrngrp = NeuronGroup(len(input_configs), eqs, threshold='V>V_th',
                          refractory=t_refr,
                          reset='V=v_reset')
@@ -43,9 +51,8 @@ def lifsim(N_in, f_out, w_in, report):
     randConns = []
     syncMons = []
     randMons = []
-    f_in = nt.calibrate_frequencies(nrngrp, N_in, w_in, input_configs, f_out)
     for idx, (S_in, sigma) in enumerate(input_configs):
-            sg, rg = nt.genInputGroups(N_in, f_in, S_in, sigma, duration)
+            sg, rg = nt.genInputGroups(N_in, f_in[idx], S_in, sigma, duration)
             syncGroups.append(sg)
             randGroups.append(rg)
             sm = SpikeMonitor(sg)
@@ -106,17 +113,17 @@ def lifsim(N_in, f_out, w_in, report):
 if __name__=='__main__':
     data_dir = 'data_for_metric_comparison'
     data = DataManager(data_dir)
-    os.mkdir('data')
+    #os.mkdir('data')
     print('\n')
     N_in = [100]
-    f_out = [100]
+    f_out = [50]
     w_in = [0.5]
     params_prod = itertools.product(N_in, f_out, w_in)
     nsims = len(N_in)*len(f_out)*len(w_in)
     print("Simulations configured. Running ...")
     #run_tasks(data, lifsim, params_prod, gui=False,
     #                                poolsize=1, numitems=nsims)
-    lifsim(100, 100, 0.5, None)
+    lifsim(100, 100, 0.2, None)
     print("Simulations done!")
     print("Creating data zip ...")
     zip = zipfile.ZipFile('data.zip', 'w')
