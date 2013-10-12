@@ -16,8 +16,8 @@ v_reset = 0*mV
 V0 = 0*mV
 
 
-def genInputGroups(N_in, f_in, S_in, sigma, duration):
-    N_sync = int(N_in*S_in)
+def genInputGroups(N_in, f_in, sync, jitter, duration):
+    N_sync = int(N_in*sync)
     N_rand = N_in-N_sync
     syncGroup = PoissonGroup(0, 0)  # dummy nrngrp
     randGroup = PoissonGroup(0, 0)
@@ -31,7 +31,7 @@ def genInputGroups(N_in, f_in, S_in, sigma, duration):
         pp = PulsePacket(0*second, 1, 0*second)  # dummy pp
         for pt in pulse_times:
             try:
-                pp.generate(t=pt*second, n=N_sync, sigma=sigma*ms)
+                pp.generate(t=pt*second, n=N_sync, jitter=jitter*ms)
                 sync_spikes.extend(pp.spiketimes)
             except ValueError:
                 continue
@@ -43,126 +43,78 @@ def genInputGroups(N_in, f_in, S_in, sigma, duration):
     return syncGroup, randGroup
 
 
-def lifsim(N_in, f_out, w_in, report):
+def lifsim(N_in, f_in, w_in, sync, jitter, report):
     clear(True)
     gc.collect()
     reinit_default_clock()
-    seed = int(time()+(N_in+f_out+w_in)*1e3)
-    f_out = f_out*Hz
+    seed = int(time()+(N_in+f_in+w_in+sync+jitter)*1e3)
+    # add units to parameters
+    f_in = f_in*Hz
     w_in = w_in*mV
-    input_configs = []
-    for sigma in frange(0, 4, 0.5):
-        for S_in in frange(0, 1, 0.2):
-            input_configs.append((S_in, sigma))
+    jitter = jitter*ms
+    # seed the numpy prng
     np.random.seed(seed)
+    # set up the network
     eqs = Equations('dV/dt = -(V-V0)/tau : volt')
     eqs.prepare()
-    nrngrp = NeuronGroup(len(input_configs), eqs, threshold='V>V_th',
+    nrngrp = NeuronGroup(1, eqs, threshold='V>V_th',
                                                     refractory=t_refr,
                                                     reset='V=v_reset')
     nrngrp.V = V0
     simnetwork = Network(nrngrp)
-    syncGroups = []
-    randGroups = []
-    syncConns = []
-    randConns = []
-    syncMons = []
-    randMons = []
-    idx = 0
-    # TODO: estimate input rate
-    f_in = f_out
-    for S_in, sigma in input_configs:
-            sg, rg = genInputGroups(N_in, f_in, S_in, sigma, duration)
-            syncGroups.append(sg)
-            randGroups.append(rg)
-            sm = SpikeMonitor(sg)
-            rm = SpikeMonitor(rg)
-            syncMons.append(sm)
-            randMons.append(rm)
-            simnetwork.add(sm, rm)
-            if len(sg):
-                sConn = Connection(sg, nrngrp[idx], state='V', weight=w_in)
-                syncConns.append(sConn)
-                simnetwork.add(sg, sConn)
-            if len(rg):
-                rConn = Connection(rg, nrngrp[idx], state='V', weight=w_in)
-                randConns.append(rConn)
-                simnetwork.add(rg, rConn)
-            idx += 1
+    # set up the inputs - the important part
+    sg, rg = genInputGroups(N_in, f_in, sync, jitter, duration)
+    sm = SpikeMonitor(sg)
+    rm = SpikeMonitor(rg)
+    simnetwork.add(sm, rm)
+    if len(sg):
+        sConn = Connection(sg, nrngrp[idx], state='V', weight=w_in)
+        simnetwork.add(sg, sConn)
+    if len(rg):
+        rConn = Connection(rg, nrngrp[idx], state='V', weight=w_in)
+        simnetwork.add(rg, rConn)
 
     mem_mon = StateMonitor(nrngrp, 'V', record=True)
-    st_mon = SpikeMonitor(nrngrp)
+    output_mon = SpikeMonitor(nrngrp)
     simnetwork.add(mem_mon, st_mon)
+    # all ready - run the simulation
     simnetwork.run(duration, report=report)
     mem_mon.insert_spikes(st_mon, value=V_th)
     # collect input spikes
     input_spikes = []
-    for sm, rm in zip(syncMons, randMons):
-        input_spikes_idx = []
-        for sm_idx in sm.spiketimes:
-            input_spikes_idx.append(sm.spiketimes[sm_idx])
-        for rm_idx in rm.spiketimes:
-            input_spikes_idx.append(rm.spiketimes[rm_idx])
-        input_spikes.append(input_spikes_idx)
-
+    for sm_idx in sm.spiketimes.iterkeys():
+        input_spikes.append(sm.spiketimes[sm_idx])
+    for rm_idx in rm.spiketimes.iterkeys():
+        input_spikes.append(rm.spiketimes[rm_idx])
+    output_spikes = []
+    for om_idx in output_mon.spiketimes.iterkeys():
+        output_spikes.append(output_mon.spiketimes[om_idx])
     return {
             'N_in': N_in,
             'f_in': f_in,
-            'f_out': f_out,
             'w_in': w_in,
+            'sync': sync,
+            'jitter': jitter,
             'mem': mem_mon.values,
-            'spikes': st_mon.spiketimes,
+            'output_spikes': output_spikes,
             'duration': defaultclock.t,
-            'seed': seed,
-            'input_configs': input_configs,
             'input_spikes': input_spikes,
+            'seed': seed,
             }
 
 if __name__=='__main__':
     data_dir = 'data_for_metric_comparison'
     data = DataManager(data_dir)
     print('\n')
-    N_in = [60, 200]
-    w_in = [0.1, 0.3, 0.5]
-    f_out = [50, 100]
-    params_prod = itertools.product(N_in, f_out, w_in)
-    nsims = len(N_in)*len(f_out)*len(w_in)
+    N_in = frange(50, 200, 50)
+    f_in = frange(0.5, 1.5, 0.25)
+    w_in = frange(0, 1.5, 0.5)
+    sync = frange(0, 1, 0.2)
+    jitt = frange(0, 4, 1.0)
+    params_prod = itertools.product(N_in, f_in, w_in, sync, jitt)
+    nsims = len(N_in)*len(f_in)*len(w_in)*len(sync)*len(jitt)
     print("Simulations configured. Running ...")
     run_tasks(data, lifsim, params_prod, gui=False,
-                                    poolsize=-1, numitems=nsims)
+                                    poolsize=0, numitems=nsims)
     print("Simulations done!")
-    print("Organising and saving data ...")
-    N_in = []
-    f_in = []
-    f_out = []
-    w_in = []
-    mem = []
-    spikes = []
-    duration = []
-    input_configs = []
-    input_spikes = []
-    for item in data.itervalues():
-        N_in.append(item['N_in'])
-        f_in.append(item['f_in'])
-        f_out.append(item['f_out'])
-        w_in.append(item['w_in'])
-        mem.append(item['mem'])
-        spikes.append(item['spikes'])
-        duration.append(item['duration'])
-        input_configs.append(item['input_configs'])
-        input_spikes.append(item['input_spikes'])
-    np.savez('data.npz',
-            N_in=N_in,
-            f_in=f_in,
-            f_out=f_out,
-            w_in=w_in,
-            mem=mem,
-            spikes=spikes,
-            duration=duration,
-            input_configs=input_configs,
-            input_spikes=input_spikes,
-            )
-    print("DONE!")
-
-
 
