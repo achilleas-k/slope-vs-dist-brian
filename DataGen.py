@@ -68,18 +68,18 @@ def lifsim(N_in, f_in, w_in, sync, jitter, report):
     rm = SpikeMonitor(rg)
     simnetwork.add(sm, rm)
     if len(sg):
-        sConn = Connection(sg, nrngrp[idx], state='V', weight=w_in)
+        sConn = Connection(sg, nrngrp, state='V', weight=w_in)
         simnetwork.add(sg, sConn)
     if len(rg):
-        rConn = Connection(rg, nrngrp[idx], state='V', weight=w_in)
+        rConn = Connection(rg, nrngrp, state='V', weight=w_in)
         simnetwork.add(rg, rConn)
 
     mem_mon = StateMonitor(nrngrp, 'V', record=True)
     output_mon = SpikeMonitor(nrngrp)
-    simnetwork.add(mem_mon, st_mon)
+    simnetwork.add(mem_mon, output_mon)
     # all ready - run the simulation
     simnetwork.run(duration, report=report)
-    mem_mon.insert_spikes(st_mon, value=V_th)
+    mem_mon.insert_spikes(output_mon, value=V_th)
     # collect input spikes
     input_spikes = []
     for sm_idx in sm.spiketimes.iterkeys():
