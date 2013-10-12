@@ -31,7 +31,7 @@ def genInputGroups(N_in, f_in, sync, jitter, duration):
         pp = PulsePacket(0*second, 1, 0*second)  # dummy pp
         for pt in pulse_times:
             try:
-                pp.generate(t=pt*second, n=N_sync, jitter=jitter*ms)
+                pp.generate(t=pt*second, n=N_sync, sigma=jitter*ms)
                 sync_spikes.extend(pp.spiketimes)
             except ValueError:
                 continue
