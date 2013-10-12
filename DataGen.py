@@ -24,19 +24,18 @@ def genInputGroups(N_in, f_in, sync, jitter, duration):
     if N_sync:
         pulse_intervals = []
         while sum(pulse_intervals)*second < duration:
-            interval = rnd.expovariate(f_in)+dt
+            interval = rnd.expovariate(f_in)+float(dt)
             pulse_intervals.append(interval)
         pulse_times = cumsum(pulse_intervals[:-1])  # drop last one
         sync_spikes = []
         pp = PulsePacket(0*second, 1, 0*second)  # dummy pp
         for pt in pulse_times:
             try:
-                pp.generate(t=pt*second, n=N_sync, sigma=jitter*ms)
+                pp.generate(t=pt*second, n=N_sync, sigma=jitter)
                 sync_spikes.extend(pp.spiketimes)
             except ValueError:
                 continue
         syncGroup = SpikeGeneratorGroup(N=N_sync, spiketimes=sync_spikes)
-
     if N_rand:
         randGroup = PoissonGroup(N_rand, rates=f_in)
 
@@ -47,6 +46,9 @@ def lifsim(N_in, f_in, w_in, sync, jitter, report):
     clear(True)
     gc.collect()
     reinit_default_clock()
+    if sync==0 and jitter>0:
+        # redundant simulation
+        return {}
     seed = int(time()+(N_in+f_in+w_in+sync+jitter)*1e3)
     # add units to parameters
     f_in = f_in*Hz
@@ -107,8 +109,8 @@ if __name__=='__main__':
     data = DataManager(data_dir)
     print('\n')
     N_in = frange(50, 200, 50)
-    f_in = frange(0.5, 1.5, 0.25)
-    w_in = frange(0, 1.5, 0.5)
+    f_in = frange(50, 300, 50)
+    w_in = frange(0.5, 1.5, 0.5)
     sync = frange(0, 1, 0.2)
     jitt = frange(0, 4, 1.0)
     params_prod = itertools.product(N_in, f_in, w_in, sync, jitt)
