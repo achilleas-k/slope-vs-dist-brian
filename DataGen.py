@@ -109,7 +109,7 @@ if __name__=='__main__':
     data = DataManager(data_dir)
     print('\n')
     N_in = frange(50, 200, 50)
-    f_in = frange(50, 300, 50)
+    f_in = frange(50, 500, 25)
     w_in = frange(0.5, 1.5, 0.5)
     sync = frange(0, 1, 0.2)
     jitt = frange(0, 4, 1.0)
