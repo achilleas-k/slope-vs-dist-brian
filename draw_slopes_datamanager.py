@@ -49,26 +49,34 @@ def aggregate_slopes(data):
     jitter = data['jitter']
     sync_range = sorted(unique(sync))
     jitter_range = sorted(unique(jitter))
-    img = zeros((len(sync_range), len(jitter_range)))
+    img = zeros((len(jitter_range), len(sync_range)))
     for si, ji, slp in zip(sync, jitter, npss):
-        x = sync_range.index(si)
-        y = jitter_range.index(float(ji))
-        img[x,y] += slp
-    return img
+        j = jitter_range.index(float(ji))
+        s = sync_range.index(si)
+        img[j,s] += slp
+    return sync_range, jitter_range, img
 
 if __name__=='__main__':
     data_dir = sys.argv[1]
     data = load_data(data_dir)
     npss = calculate_slopes(data)
     data['slopes'] = npss
-    img = aggregate_slopes(data)
+    sync, jitter, img = aggregate_slopes(data)
     filename = "aggregated_slopes.npz"
     print("Saving aggregated data to %s" % (filename))
     np.savez(filename, slopes=img)
     # draw it!
-    imshow(img, origin='lower', aspect='auto')
-    import IPython
-    IPython.embed()
+    # extent = (min(sync), max(sync), min(jitter), max(jitter))
+    # imshow(img, extent=extent, origin='lower', aspect='auto')
+    # group simulations by input params & firing rate
+    imgdata = []
+    for slope, s, j, n, w, out in zip(
+            npss, data['sync'], data['jitter'], data['num_inputs'],
+            data['input_weight'], data['output_spikes']):
+        fout = len(out[0])
+        if 90 < fout < 110 and 0.00015*volt < w < 0.00025*volt and n == 100:
+            imgdata.append((s, j, slope))
+
 
 
 
