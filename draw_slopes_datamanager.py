@@ -1,6 +1,7 @@
 from brian import *
 from brian.tools.datamanager import *
 import sys
+import spike_distance_kreuz as sd
 import neurotools as nt
 
 
@@ -9,6 +10,7 @@ def load_data(dirname):
     voltage = []
     output_spikes = []
     input_rate = []
+    input_spikes = []
     jitter = []
     sync = []
     num_inputs = []
@@ -23,6 +25,7 @@ def load_data(dirname):
         sync.append(data['sync'])
         num_inputs.append(data['N_in'])
         weight.append(data['w_in'])
+        input_spikes.append(data['input_spikes'])
     flatdata = {
             'mem': voltage,
             'output_spikes': output_spikes,
@@ -31,6 +34,7 @@ def load_data(dirname):
             'sync': sync,
             'num_inputs': num_inputs,
             'input_weight': weight,
+            'input_spikes': input_spikes,
             }
     return flatdata
 
@@ -42,6 +46,14 @@ def calculate_slopes(data):
         npss.append(nt.norm_firing_slope(v[0], spikes[0],
             th=15*mV, tau=10*ms, dt=0.1*ms, w=2*ms)[0])
     return npss
+
+def calculate_dist(data):
+    '''
+    Calculate spike train distance using Kreuz spike distance
+    '''
+    input_spikes = data['input_spikes']
+    t, Sb = sd.multivariate_spike_distance(input_spikes, 0, 2.0, 1000)
+    return t, Sb
 
 def aggregate_slopes(data):
     npss = data['slopes']
