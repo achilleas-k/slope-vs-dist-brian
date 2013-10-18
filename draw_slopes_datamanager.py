@@ -51,9 +51,21 @@ def calculate_dist(data):
     '''
     Calculate spike train distance using Kreuz spike distance
     '''
-    input_spikes = data['input_spikes']
-    t, Sb = sd.multivariate_spike_distance(input_spikes, 0, 2.0, 1000)
-    return t, Sb
+    sync = []
+    jitter = []
+    dist = []
+    itemcount = d.itemcount()
+    for idx, d in enumerate(data.itervalues()):
+        if not d: continue
+        inputs = d['input_spikes']
+        sync.append(d['sync'])
+        jitter.append(d['jitter'])
+        t, sd_i = sd.multivariate_spike_distance(inputs, 0, 1.9, 10)
+        dist.append(mean(sd_i))
+        print "%i/%i -> S: %f, J: %f, D: %f" % (
+                idx, itemcount,
+                sync[-1], jitter[-1], dist[-1])
+    return dist
 
 def aggregate_slopes(data):
     npss = data['slopes']
