@@ -3,10 +3,14 @@ from brian.tools.datamanager import *
 import sys
 import spike_distance_kreuz as sd
 import neurotools as nt
+import pickle
 
+_numitems = 0
 
 def load_data(dirname):
+    print("Loading data from %s" % (data.basepath))
     dataman = DataManager(dirname)
+    _numitems = dataman.itemcount()
     voltage = []
     output_spikes = []
     input_rate = []
@@ -15,7 +19,7 @@ def load_data(dirname):
     sync = []
     num_inputs = []
     weight = []
-    for data in dataman.itervalues():
+    for idx, data in enumarete(dataman.itervalues()):
         if not len(data):
             continue
         voltage.append(data['mem'])
@@ -26,6 +30,9 @@ def load_data(dirname):
         num_inputs.append(data['N_in'])
         weight.append(data['w_in'])
         input_spikes.append(data['input_spikes'])
+        sys.stdout.write("%i/%i ...\r" % (idx, _numitems))
+        sys.stdout.flush()
+    print("\nDone!\n")
     flatdata = {
             'mem': voltage,
             'output_spikes': output_spikes,
@@ -39,32 +46,31 @@ def load_data(dirname):
     return flatdata
 
 def calculate_slopes(data):
+    print("Calculating slopes ...")
     npss = []
     mems = data['mem']
     output_spikes = data['output_spikes']
-    for v, spikes in zip(mems, output_spikes):
+    for idx, v, spikes in enumerate(zip(mems, output_spikes)):
         npss.append(nt.norm_firing_slope(v[0], spikes[0],
             th=15*mV, tau=10*ms, dt=0.1*ms, w=2*ms)[0])
+        sys.stdout.write("%i/%i ...\r" % (idx, _numitems))
+        sys.stdout.flush()
+    print("\nDone!\n")
     return npss
 
 def calculate_dist(data):
     '''
     Calculate spike train distance using Kreuz spike distance
     '''
-    sync = []
-    jitter = []
+    print("Calculating distances ...")
+    input_spikes = data['input_spikes']
     dist = []
-    itemcount = d.itemcount()
-    for idx, d in enumerate(data.itervalues()):
-        if not d: continue
-        inputs = d['input_spikes']
-        sync.append(d['sync'])
-        jitter.append(d['jitter'])
-        t, sd_i = sd.multivariate_spike_distance(inputs, 0, 1.9, 10)
+    for idx, inps in enumerate(input_spikes):
+        t, sd_i = sd.multivariate_spike_distance(inputs, 0, 2.0, 5)
         dist.append(mean(sd_i))
-        print "%i/%i -> S: %f, J: %f, D: %f" % (
-                idx, itemcount,
-                sync[-1], jitter[-1], dist[-1])
+        sys.stdout.write("%i/%i ...\r" % (idx, _numitems))
+        sys.stdout.flush()
+    print("\nDone!\n")
     return dist
 
 def aggregate_slopes(data):
@@ -85,22 +91,11 @@ if __name__=='__main__':
     data = load_data(data_dir)
     npss = calculate_slopes(data)
     data['slopes'] = npss
-    sync, jitter, img = aggregate_slopes(data)
-    filename = "aggregated_slopes.npz"
-    print("Saving aggregated data to %s" % (filename))
-    np.savez(filename, slopes=img)
-    # draw it!
-    # extent = (min(sync), max(sync), min(jitter), max(jitter))
-    # imshow(img, extent=extent, origin='lower', aspect='auto')
-    # group simulations by input params & firing rate
-    imgdata = []
-    for slope, s, j, n, w, out in zip(
-            npss, data['sync'], data['jitter'], data['num_inputs'],
-            data['input_weight'], data['output_spikes']):
-        fout = len(out[0])
-        if 90 < fout < 110 and 0.00015*volt < w < 0.00025*volt and n == 100:
-            imgdata.append((s, j, slope))
-
-
+    dists = calculate_dist(data)
+    data['distances'] = dists
+    save_filename = "simdata_slopes_dist.pkl"
+    print("Saving all data to %s using pickle.dump ..." % save_filename)
+    pickle.dump(data, open(save_filename, 'w'))
+    print("All done!")
 
 
