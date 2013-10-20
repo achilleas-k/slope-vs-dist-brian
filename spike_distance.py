@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def multidist(all_spikes, cost):
+def mean_pairwise_distance(all_spikes, cost):
     count = len(all_spikes)
     distances = []
     for i in range(count - 1):
