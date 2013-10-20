@@ -109,6 +109,23 @@ def calculate_dist_victor(input_spikes):
     print("Done!\n")
     return dist
 
+def calculate_dist_victor_st(input_spikes):
+    '''
+    Calculate spike train distance using mean pairwise Victor distance
+    Single local process calls multiprocess version
+    '''
+    print("Calculating distances ...")
+    cost = 1000
+    dist = []
+    for idx, spikes in enumerate(input_spikes, 1):
+        d = sd.mean_pairwise_distance(spikes, cost)
+        dist.append(d)
+        sys.stdout.write("\r%i/%i ..." % (idx, _numitems))
+        sys.stdout.flush()
+    print("Done!\n")
+    return dist
+
+
 def aggregate_slopes(data):
     npss = data['slopes']
     sync = data['sync']
@@ -135,11 +152,13 @@ def aggregate_slopes(data):
 #    print("All done!")
 
 if __name__=='__main__':
-    datafile = sys.argv[1]
-    print("Loading data from %s ..." % (datafile))
+    datafilename = sys.argv[1]
+    print("Loading data from %s ..." % (datafilename))
+    datafile = open(datafilename, 'r')
     spikes = pickle.load(datafile)
+    datafile.close()
     print("Data loaded!")
-    dist = calculate_dist_victor(spikes)
+    dist = calculate_dist_victor_st(spikes)
     save_filename = "victor_dist.pkl"
     print("Saving calculated distances to %s ..." % (save_filename))
     pickle.dump(dist, open(save_filename, 'w'))
