@@ -8,7 +8,7 @@ def stdistance(spiketrain_a, spiketrain_b, cost):
     num_spike_j = len(spiketrain_b)
     if num_spike_i == 0 or num_spike_j == 0:
         return 0
-    matrix = zeros((num_spike_i, num_spike_j))
+    matrix = np.zeros((num_spike_i, num_spike_j))
     for i in range(num_spike_i):
         matrix[i][0] = i
     for i in range(num_spike_j):
