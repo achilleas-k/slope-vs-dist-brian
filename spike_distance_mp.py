@@ -35,7 +35,6 @@ def stdistance(tli, tlj, cost):
     dist = scr[nspi, nspj]
     return dist
 
-
 def all_dist_to_end(args):
     idx = args[0]
     spiketrains = args[1]
@@ -46,7 +45,6 @@ def all_dist_to_end(args):
         dist = stdistance(spiketrains[idx], spiketrains[jdx], cost)
         distances.append(dist)
     return distances
-
 
 def mean_pairwise_distance(spiketrains, cost):
     count = len(spiketrains)
