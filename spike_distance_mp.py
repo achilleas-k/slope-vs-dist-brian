@@ -35,7 +35,7 @@ def stdistance(tli, tlj, cost):
     dist = scr[nspi, nspj]
     return dist
 
-def all_dist_to_end(args):
+def _all_dist_to_end(args):
     idx = args[0]
     spiketrains = args[1]
     cost = args[2]
@@ -51,10 +51,12 @@ def mean_pairwise_distance(spiketrains, cost):
     distances = []
     idx_all = range(count - 1)
     pool = multiprocessing.Pool()
-    distances_nested = pool.map(all_dist_to_end,
+    distances_nested = pool.map(_all_dist_to_end,
                                 zip(idx_all, itertools.repeat(spiketrains),
                                     itertools.repeat(cost)))
     distances = []
+    pool.close()
+    pool.join()
     for dn in distances_nested:
         distances.extend(dn)
     return np.mean(distances)
