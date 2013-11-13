@@ -22,29 +22,13 @@ N = 20  # spikes per packet
 packets = []
 intradists = []
 
-print("Calculating distance of single pulse packets without background noise ...")
-#samples = 20
-#for sigma in sigmas:
-#    for smpl in range(samples):
-#        print("sigma: %f, sample: %i" % (sigma, smpl))
-#        if sigma:
-#            newpacket = nprng.normal(loc=packet_time, scale=sigma, size=N)
-#        else:
-#            newpacket = ones(N)*packet_time
-#        newpacket = [[t] for t in newpacket]
-#        packets.append(newpacket)
-#        idist = mean_pairwise_distance(newpacket, 1000)
-#        intradists.append((sigma, idist))
-#sigmas, dists = zip(*intradists)
-#scatter(sigmas, dists)
-#savefig("singlepacket.png")
-print("Adding noise ...")
+print("Calculating distance of single pulse packets with background noise ...")
 intradists = []
 samples = 1
-randtrains = [10]
+randtrains = [0, 5, 10, 15, 20, 25, 30]
 spikerates = frange(10*Hz, 100*Hz, 10*Hz)
-for nrand in randtrains:
-    for bg_rate in spikerates:
+for bg_rate in spikerates:
+    for nrand in randtrains:
         for sigma in sigmas:
             for smpl in range(samples):
                 print("nrand: %i, bg rate: %f, sigma: %f, sample: %i" % (
@@ -65,11 +49,14 @@ for nrand in randtrains:
                     randspiketrains.append(poissontrain)
                 allspikes = newpacket+randspiketrains  # must always be sure they are lists
                 idist = mean_pairwise_distance(allspikes, 1000)
-                intradists.append((bg_rate, sigma, idist))
-    rates, sigmas, dists = zip(*intradists)
-    scatter(sigmas, dists, c=rates)
-    colorbar()
-    savefig("singlepacket_noise_nrand_%i.png" % (nrand))
+                intradists.append((nrand, sigma, idist))
+    rands, sigs, dists = zip(*intradists)
+    scatter(sigs, dists, c=rands)
+    cbar = colorbar()
+    xlabel('sigma')
+    ylabel('spike distance')
+    cbar.set_label('Nrand')
+    savefig("singlepacket_noise_rate_%i.png" % (bg_rate))
     intradists = []
     clf()
     print("Saved figure for %i ..." % (nrand))
