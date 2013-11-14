@@ -63,7 +63,6 @@ for bg_rate in spikerates:
                         poissspike += random.expovariate(bg_rate)
                     randspiketrains.append(poissontrain)
                 allspikes = newpacket+randspiketrains  # must always be sure they are lists
-                idist = mean_pairwise_distance(allspikes, 1000)
                 spiketimes = arrays_to_spiketimes(allspikes)
                 if not len(allspikes) == nrand + N:
                     warn("Whaaaat?! Something fucked up. Check spiketrains.")
@@ -79,7 +78,10 @@ for bg_rate in spikerates:
                 netw = Network(inputgroup, neuron, conn, statemon, spikemon)
                 netw.run(1.5*second)
                 statemon.insert_spikes(spikemon, 15*mV)
+                if len(spikemon[0]) > 1:
+                    warn("More than one spike fired.")
                 if len(spikemon[0]):
+                    idist = mean_pairwise_distance(allspikes, 1000)
                     for outspike in spikemon[0]:
                         outspike *= second
                         spike_dt = outspike/(0.1*ms)
@@ -89,9 +91,6 @@ for bg_rate in spikerates:
                         slope = (15*mV-v_w_start*volt)/slope_w
                         interm_results.append((nrand, bg_rate, sigma, idist, slope))
                         results.append((nrand, bg_rate, sigma, idist, slope))
-                else:
-                    interm_results.append((nrand, bg_rate, sigma, idist, 0*mV/ms))
-                    results.append((nrand, bg_rate, sigma, idist, 0*mV/ms))
                 # clear everything related to brian
                 del(inputgroup, neuron, conn, statemon, spikemon, netw)
                 defaultclock.reinit()
@@ -113,4 +112,10 @@ scatter(slopes, dists)
 xlabel('slope')
 ylabel('spike distance')
 savefig("all_slope_vs_dist.png")
+np.savez("singlepacket.npz",
+        Nrand=rands,
+        randrate=rates,
+        sigma=sigs,
+        dist=dists,
+        slope=slopes)
 
