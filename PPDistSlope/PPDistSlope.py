@@ -40,14 +40,12 @@ spikerates = frange(10*Hz, 100*Hz, 10*Hz)
 
 print("Calculating distance of single pulse packets with background noise ...")
 results = []
-slope_w = 2*ms
+slope_w = 0.5*ms
 for bg_rate in spikerates:
     interm_results = []
     for nrand in randtrains:
         for sigma in sigmas:
             for smpl in range(samples):
-                print("nrand: %i, bg rate: %f, sigma: %f, sample: %i" % (
-                    nrand, bg_rate, sigma, smpl))
                 if sigma:
                     newpacket = nprng.normal(loc=packet_time, scale=sigma, size=N)
                 else:
@@ -69,7 +67,7 @@ for bg_rate in spikerates:
                 weight = 1.5*15*mV/len(allspikes)
                 inputgroup = SpikeGeneratorGroup(len(allspikes), spiketimes)
                 neuron = NeuronGroup(1, 'dV/dt = -V/(10*ms) : volt',
-                        threshold='V>15*mV', reset='V=0*mV')
+                        threshold='V>15*mV', reset='V=0*mV', refractory=2*ms)
                 conn = Connection(source=inputgroup, target=neuron,
                         state='V', weight=weight)
                 neuron.V = 0*mV
@@ -80,6 +78,8 @@ for bg_rate in spikerates:
                 statemon.insert_spikes(spikemon, 15*mV)
                 if len(spikemon[0]) > 1:
                     warn("More than one spike fired.")
+                print("nrand: %i, bg rate: %f, sigma: %f, sample: %i" % (
+                    nrand, bg_rate, sigma, smpl))
                 if len(spikemon[0]):
                     idist = mean_pairwise_distance(allspikes, 1000)
                     for outspike in spikemon[0]:
@@ -91,6 +91,11 @@ for bg_rate in spikerates:
                         slope = (15*mV-v_w_start*volt)/slope_w
                         interm_results.append((nrand, bg_rate, sigma, idist, slope))
                         results.append((nrand, bg_rate, sigma, idist, slope))
+                        print("\t\tdist: %f, slope: %f" % (idist, slope))
+                else:
+                    print("\t\tNo spike fired.")
+                if slope < 0:
+                    warn("Negative slope - this is a problem!")
                 # clear everything related to brian
                 del(inputgroup, neuron, conn, statemon, spikemon, netw)
                 defaultclock.reinit()
