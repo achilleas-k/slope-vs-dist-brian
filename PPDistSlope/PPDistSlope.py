@@ -9,7 +9,7 @@ complexity to see whether the correlation exists on each level.
 from brian import *
 import random
 import gc
-from warnings import warn
+import warnings
 from spike_distance_mp import mean_pairwise_distance
 
 def arrays_to_spiketimes(thearrays):
@@ -23,9 +23,12 @@ def arrays_to_spiketimes(thearrays):
                 spiketimes.append((i, spike))
         return spiketimes
 
-
+warnings.simplefilter('always')
 nprng = np.random
-dcost = 1000  # cost 1000/second
+slope_w = 0.5*ms
+# cost of moving a spike should be < 2 for moving within w
+# and equal 2 when moving across a time w
+dcost = 2/slope_w
 
 # First, we'll generate a few pulse packets and calculate the distance on each
 # one individually
@@ -35,17 +38,26 @@ N = 20  # spikes per packet
 packets = []
 sigmas = frange(0*ms, 4*ms, 0.1*ms)
 samples = 1
-randtrains = [0, 5, 10, 15, 20, 25, 30]
+randtrains = [5, 10, 15, 20, 25, 30]
 spikerates = frange(10*Hz, 100*Hz, 10*Hz)
 
 print("Calculating distance of single pulse packets with background noise ...")
 results = []
-slope_w = 0.5*ms
 for bg_rate in spikerates:
     interm_results = []
     for nrand in randtrains:
         for sigma in sigmas:
             for smpl in range(samples):
+                defaultclock.reinit()
+                clear(True, True)
+                gc.collect()
+                # need to re-define stop condition after deleting
+                # everything
+                @network_operation
+                def stop_condition(clock):
+                    if spikemon.nspikes:
+                        stop()
+
                 if sigma:
                     newpacket = nprng.normal(loc=packet_time, scale=sigma, size=N)
                 else:
@@ -63,7 +75,7 @@ for bg_rate in spikerates:
                 allspikes = newpacket+randspiketrains  # must always be sure they are lists
                 spiketimes = arrays_to_spiketimes(allspikes)
                 if not len(allspikes) == nrand + N:
-                    warn("Whaaaat?! Something fucked up. Check spiketrains.")
+                    warningsd.warn("Whaaaat?! Something fucked up. Check spiketrains.")
                 weight = 1.5*15*mV/len(allspikes)
                 inputgroup = SpikeGeneratorGroup(len(allspikes), spiketimes)
                 neuron = NeuronGroup(1, 'dV/dt = -V/(10*ms) : volt',
@@ -73,11 +85,12 @@ for bg_rate in spikerates:
                 neuron.V = 0*mV
                 statemon = StateMonitor(neuron, 'V', record=True)
                 spikemon = SpikeMonitor(neuron, record=True)
-                netw = Network(inputgroup, neuron, conn, statemon, spikemon)
+                netw = Network(inputgroup, neuron, conn, statemon,
+                        spikemon, stop_condition)
                 netw.run(1.5*second)
                 statemon.insert_spikes(spikemon, 15*mV)
                 if len(spikemon[0]) > 1:
-                    warn("More than one spike fired.")
+                    warnings.warn("More than one spike fired.")
                 print("nrand: %i, bg rate: %f, sigma: %f, sample: %i" % (
                     nrand, bg_rate, sigma, smpl))
                 if len(spikemon[0]):
@@ -95,12 +108,9 @@ for bg_rate in spikerates:
                 else:
                     print("\t\tNo spike fired.")
                 if slope < 0:
-                    warn("Negative slope - this is a problem!")
+                    warnings.warn("Negative slope - this is a problem!")
                 # clear everything related to brian
                 del(inputgroup, neuron, conn, statemon, spikemon, netw)
-                defaultclock.reinit()
-                clear(True, True)
-                gc.collect()
 
     rands, rates, sigs, dists, slopes = zip(*interm_results)
     scatter(slopes, dists, c=sigs)
