@@ -78,6 +78,7 @@ for bg_rate in spikerates:
                     warningsd.warn("Whaaaat?! Something fucked up. Check spiketrains.")
                 weight = 1.5*15*mV/len(allspikes)
                 inputgroup = SpikeGeneratorGroup(len(allspikes), spiketimes)
+                # TODO: no reset - no clipping - Jacob's suggestion
                 neuron = NeuronGroup(1, 'dV/dt = -V/(10*ms) : volt',
                         threshold='V>15*mV', reset='V=0*mV', refractory=2*ms)
                 conn = Connection(source=inputgroup, target=neuron,
