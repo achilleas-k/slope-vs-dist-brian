@@ -31,7 +31,7 @@ nprng = np.random
 slope_w = 0.5*ms
 # cost of moving a spike should be < 2 for moving within w
 # and equal 2 when moving across a time w
-dcost = 2/slope_w
+dcost = float(2/slope_w)
 
 
 packet_times = [0.5*second, 1.5*second]
