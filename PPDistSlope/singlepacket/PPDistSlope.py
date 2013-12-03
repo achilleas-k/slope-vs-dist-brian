@@ -25,7 +25,9 @@ def arrays_to_spiketimes(thearrays):
 
 warnings.simplefilter('always')
 nprng = np.random
-slope_w = 0.5*ms
+slope_w = 2*ms
+defaultclock.dt = dt = 0.1*ms
+duration = 1*second
 # cost of moving a spike should be < 2 for moving within w
 # and equal 2 when moving across a time w
 dcost = 2/slope_w
@@ -36,14 +38,15 @@ dcost = 2/slope_w
 packet_time = 0.5*second  # reduce the chance of negative spike times
 N = 20  # spikes per packet
 packets = []
-sigmas = frange(0*ms, 4*ms, 0.1*ms)
-samples = 1
-randtrains = [5, 10, 15, 20, 25, 30]
-spikerates = frange(10*Hz, 100*Hz, 10*Hz)
+sigmas = [0*ms]
+samples = 10
+randtrains = [20]
+spikerates = frange(10*Hz, 100*Hz, 20*Hz)
 
 print("Calculating distance of single pulse packets with background noise ...")
 results = []
 for bg_rate in spikerates:
+    bg_rate*=Hz
     interm_results = []
     for nrand in randtrains:
         for sigma in sigmas:
@@ -68,15 +71,15 @@ for bg_rate in spikerates:
                 for nr in range(nrand):
                     poissontrain = []
                     poissspike = random.expovariate(bg_rate)
-                    while poissspike <= 1:  # 1 second duration
-                        poissontrain.append(poissspike)
+                    while poissspike <= duration:
+                        poissontrain.append(float(poissspike))
                         poissspike += random.expovariate(bg_rate)
                     randspiketrains.append(poissontrain)
-                allspikes = newpacket+randspiketrains  # must always be sure they are lists
+                allspikes = randspiketrains+newpacket
                 spiketimes = arrays_to_spiketimes(allspikes)
                 if not len(allspikes) == nrand + N:
-                    warningsd.warn("Whaaaat?! Something fucked up. Check spiketrains.")
-                weight = 1.5*15*mV/len(allspikes)
+                    warningsd.warn("Check spiketrains.")
+                weight = 1.5*15*mV/N
                 inputgroup = SpikeGeneratorGroup(len(allspikes), spiketimes)
                 # TODO: no reset - no clipping - Jacob's suggestion
                 neuron = NeuronGroup(1, 'dV/dt = -V/(10*ms) : volt',
@@ -88,7 +91,7 @@ for bg_rate in spikerates:
                 spikemon = SpikeMonitor(neuron, record=True)
                 netw = Network(inputgroup, neuron, conn, statemon,
                         spikemon, stop_condition)
-                netw.run(1.5*second)
+                netw.run(duration)
                 statemon.insert_spikes(spikemon, 15*mV)
                 if len(spikemon[0]) > 1:
                     warnings.warn("More than one spike fired.")
@@ -96,6 +99,7 @@ for bg_rate in spikerates:
                     nrand, bg_rate, sigma, smpl))
                 if len(spikemon[0]):
                     idist = mean_pairwise_distance(allspikes, 1000)
+
                     for outspike in spikemon[0]:
                         outspike *= second
                         spike_dt = outspike/(0.1*ms)
@@ -103,27 +107,31 @@ for bg_rate in spikerates:
                         w_start_dt = w_start/(0.1*ms)
                         v_w_start = statemon[0][w_start_dt]
                         slope = (15*mV-v_w_start*volt)/slope_w
-                        interm_results.append((nrand, bg_rate, sigma, idist, slope))
-                        results.append((nrand, bg_rate, sigma, idist, slope))
+                        interm_results.append((nrand, bg_rate, sigma,
+                            idist, slope, weight))
+                        results.append((nrand, bg_rate, sigma, idist, slope, weight))
                         print("\t\tdist: %f, slope: %f" % (idist, slope))
+                        if slope < 0:
+                            warnings.warn("Negative slope - this is a problem!")
                 else:
                     print("\t\tNo spike fired.")
-                if slope < 0:
-                    warnings.warn("Negative slope - this is a problem!")
                 # clear everything related to brian
                 del(inputgroup, neuron, conn, statemon, spikemon, netw)
 
-    rands, rates, sigs, dists, slopes = zip(*interm_results)
-    scatter(slopes, dists, c=sigs)
-    cbar = colorbar()
+    if interm_results == 0:
+        print("No results so far - skipping plot")
+        continue
+    rands, rates, sigs, dists, slopes, weight = zip(*interm_results)
+    scatter(slopes, dists)#, c=sigs)
+    #cbar = colorbar()
     xlabel('slopes')
     ylabel('spike distance')
-    cbar.set_label('sigma')
+    #cbar.set_label('sigma')
     savefig("slope_vs_dist_rate_%i.png" % (bg_rate))
     clf()
     print("Saved figure for %i ..." % (bg_rate))
 
-rands, rates, sigs, dists, slopes = zip(*results)
+rands, rates, sigs, dists, slopes, weights = zip(*results)
 scatter(slopes, dists)
 xlabel('slope')
 ylabel('spike distance')
@@ -133,5 +141,6 @@ np.savez("singlepacket.npz",
         randrate=rates,
         sigma=sigs,
         dist=dists,
-        slope=slopes)
+        slope=slopes,
+        weight=weights)
 
