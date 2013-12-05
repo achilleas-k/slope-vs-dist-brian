@@ -27,7 +27,7 @@ warnings.simplefilter('always')
 nprng = np.random
 slope_w = 2*ms
 defaultclock.dt = dt = 0.1*ms
-duration = 1*second
+duration = 0.2*second
 # cost of moving a spike should be < 2 for moving within w
 # and equal 2 when moving across a time w
 dcost = 2/slope_w
@@ -35,13 +35,13 @@ dcost = 2/slope_w
 # First, we'll generate a few pulse packets and calculate the distance on each
 # one individually
 
-packet_time = 0.5*second  # reduce the chance of negative spike times
+packet_time = 0.1*second  # reduce the chance of negative spike times
 N = 20  # spikes per packet
 packets = []
-sigmas = [0*ms]
-samples = 10
-randtrains = [20]
-spikerates = frange(10*Hz, 100*Hz, 20*Hz)
+sigmas = [0*ms, 1*ms, 2*ms, 3*ms, 4*ms]
+samples = 30
+randtrains = [20, 30]
+spikerates = frange(20*Hz, 100*Hz, 40*Hz)
 
 print("Calculating distance of single pulse packets with background noise ...")
 results = []
@@ -51,6 +51,8 @@ for bg_rate in spikerates:
     for nrand in randtrains:
         for sigma in sigmas:
             for smpl in range(samples):
+                print("nrand: %i, bg rate: %f, sigma: %f, sample: %i" % (
+                    nrand, bg_rate, sigma, smpl))
                 defaultclock.reinit()
                 clear(True, True)
                 gc.collect()
@@ -70,7 +72,8 @@ for bg_rate in spikerates:
                 randspiketrains = []
                 for nr in range(nrand):
                     poissontrain = []
-                    poissspike = random.expovariate(bg_rate)
+                    # start random spike trains 10 ms before packet
+                    poissspike = random.expovariate(bg_rate)+0.09*second
                     while poissspike <= duration:
                         poissontrain.append(float(poissspike))
                         poissspike += random.expovariate(bg_rate)
@@ -93,13 +96,19 @@ for bg_rate in spikerates:
                         spikemon, stop_condition)
                 netw.run(duration)
                 statemon.insert_spikes(spikemon, 15*mV)
+                act_dura = defaultclock.t
+                # use only input spikes that arrived before the output
+                # spike
+                inputspikes = [[aspike for aspike in atrain if aspike*second <= act_dura+dt] for atrain in allspikes]
+                # remove empty spike trains
+                inputspikes = [atrain for atrain in inputspikes if atrain]
+                firstspike = min([min(atrain) for atrain in inputspikes])
                 if len(spikemon[0]) > 1:
                     warnings.warn("More than one spike fired.")
-                print("nrand: %i, bg rate: %f, sigma: %f, sample: %i" % (
-                    nrand, bg_rate, sigma, smpl))
                 if len(spikemon[0]):
-                    idist = mean_pairwise_distance(allspikes, 1000)
-
+                    idist = mean_pairwise_distance(inputspikes, 1000)
+                    #import IPython; IPython.embed()
+                    #sys.exit(10)
                     for outspike in spikemon[0]:
                         outspike *= second
                         spike_dt = outspike/(0.1*ms)
@@ -109,7 +118,7 @@ for bg_rate in spikerates:
                         slope = (15*mV-v_w_start*volt)/slope_w
                         interm_results.append((nrand, bg_rate, sigma,
                             idist, slope, weight))
-                        results.append((nrand, bg_rate, sigma, idist, slope, weight))
+                        results.append((nrand, bg_rate, sigma, idist, slope, weight, len(inputspikes), firstspike))
                         print("\t\tdist: %f, slope: %f" % (idist, slope))
                         if slope < 0:
                             warnings.warn("Negative slope - this is a problem!")
@@ -131,7 +140,7 @@ for bg_rate in spikerates:
     clf()
     print("Saved figure for %i ..." % (bg_rate))
 
-rands, rates, sigs, dists, slopes, weights = zip(*results)
+rands, rates, sigs, dists, slopes, weights, ninputs, firstspike = zip(*results)
 scatter(slopes, dists)
 xlabel('slope')
 ylabel('spike distance')
@@ -142,5 +151,7 @@ np.savez("singlepacket.npz",
         sigma=sigs,
         dist=dists,
         slope=slopes,
-        weight=weights)
+        weight=weights,
+        ninputs=ninputs,
+        firstspike=firstspike)
 
