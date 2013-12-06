@@ -40,11 +40,12 @@ N = 20  # spikes per packet
 packets = []
 sigmas = [0*ms, 1*ms, 2*ms, 3*ms, 4*ms]
 samples = 30
-randtrains = [20, 30]
+randtrains = [20]
 spikerates = frange(20*Hz, 100*Hz, 40*Hz)
 
 print("Calculating distance of single pulse packets with background noise ...")
 results = []
+averages = []
 for bg_rate in spikerates:
     bg_rate*=Hz
     interm_results = []
@@ -86,7 +87,9 @@ for bg_rate in spikerates:
                 inputgroup = SpikeGeneratorGroup(len(allspikes), spiketimes)
                 # TODO: no reset - no clipping - Jacob's suggestion
                 neuron = NeuronGroup(1, 'dV/dt = -V/(10*ms) : volt',
-                        threshold='V>15*mV', reset='V=0*mV', refractory=2*ms)
+                        threshold='V>15*mV', refractory=2*ms,
+                        #reset='V=0*mV',
+                        )
                 conn = Connection(source=inputgroup, target=neuron,
                         state='V', weight=weight)
                 neuron.V = 0*mV
@@ -95,57 +98,44 @@ for bg_rate in spikerates:
                 netw = Network(inputgroup, neuron, conn, statemon,
                         spikemon, stop_condition)
                 netw.run(duration)
-                statemon.insert_spikes(spikemon, 15*mV)
+                #statemon.insert_spikes(spikemon, 15*mV)
                 act_dura = defaultclock.t
                 # use only input spikes that arrived before the output
                 # spike
-                inputspikes = [[aspike for aspike in atrain if aspike*second <= act_dura+dt] for atrain in allspikes]
+                inputspikes = [[aspike for aspike in atrain if aspike*second <= act_dura+dt*0.5] for atrain in allspikes]
                 # remove empty spike trains
                 inputspikes = [atrain for atrain in inputspikes if atrain]
-                firstspike = min([min(atrain) for atrain in inputspikes])
                 if len(spikemon[0]) > 1:
                     warnings.warn("More than one spike fired.")
                 if len(spikemon[0]):
                     idist = mean_pairwise_distance(inputspikes, 1000)
-                    #import IPython; IPython.embed()
-                    #sys.exit(10)
                     for outspike in spikemon[0]:
                         outspike *= second
-                        spike_dt = outspike/(0.1*ms)
+                        spike_dt = outspike/dt
                         w_start = outspike-slope_w
-                        w_start_dt = w_start/(0.1*ms)
+                        w_start_dt = w_start/dt
                         v_w_start = statemon[0][w_start_dt]
                         slope = (15*mV-v_w_start*volt)/slope_w
-                        interm_results.append((nrand, bg_rate, sigma,
-                            idist, slope, weight))
-                        results.append((nrand, bg_rate, sigma, idist, slope, weight, len(inputspikes), firstspike))
+                        # new stuff here
+                        spikepeak = statemon[0][spike_dt]
+                        results.append((nrand, bg_rate, sigma, idist, slope, weight, len(inputspikes), spikepeak))
                         print("\t\tdist: %f, slope: %f" % (idist, slope))
                         if slope < 0:
                             warnings.warn("Negative slope - this is a problem!")
+                        cur_slope.append(slope)
+                        cur_dist.append(idist)
                 else:
                     print("\t\tNo spike fired.")
+
                 # clear everything related to brian
                 del(inputgroup, neuron, conn, statemon, spikemon, netw)
 
-    if interm_results == 0:
-        print("No results so far - skipping plot")
-        continue
-    rands, rates, sigs, dists, slopes, weight = zip(*interm_results)
-    scatter(slopes, dists)#, c=sigs)
-    #cbar = colorbar()
-    xlabel('slopes')
-    ylabel('spike distance')
-    #cbar.set_label('sigma')
-    savefig("slope_vs_dist_rate_%i.png" % (bg_rate))
-    clf()
-    print("Saved figure for %i ..." % (bg_rate))
-
-rands, rates, sigs, dists, slopes, weights, ninputs, firstspike = zip(*results)
+rands, rates, sigs, dists, slopes, weights, ninputs, spikepeak = zip(*results)
 scatter(slopes, dists)
 xlabel('slope')
 ylabel('spike distance')
 savefig("all_slope_vs_dist.png")
-np.savez("singlepacket.npz",
+np.savez("singlepacket_noclip.npz",
         Nrand=rands,
         randrate=rates,
         sigma=sigs,
@@ -153,5 +143,5 @@ np.savez("singlepacket.npz",
         slope=slopes,
         weight=weights,
         ninputs=ninputs,
-        firstspike=firstspike)
+        spikepeak=spikepeak)
 
