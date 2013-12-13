@@ -14,6 +14,7 @@ def get_win_start(trace, spikes, w=2*ms, dt=0.1*ms):
     win_start_dt = spikes_dt-w_dt
     return trace[win_start_dt]
 
+
 def interval_VP(inputspikes, outputspikes, cost, dt=0.1*ms):
     dt = float(dt)
     vpdists = []
