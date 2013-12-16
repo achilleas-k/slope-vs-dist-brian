@@ -46,6 +46,7 @@ dcost = float(2/slope_w)
 N_in = 100
 f_in = 30*Hz
 S_in = frange(0, 1, 0.1)
+sigma_in = 1*ms
 Nsims = len(S_in)
 
 # neuron
@@ -62,7 +63,7 @@ syncMons = []
 randMons = []
 for idx, sync in enumerate(S_in):
     # inputs
-    syncInp, randInp = genInputGroups(N_in, f_in, sync, 0*ms, duration, dt)
+    syncInp, randInp = genInputGroups(N_in, f_in, sync, sigma_in, duration, dt)
     syncGens.append(syncInp)
     randGens.append(randInp)
     netw.add(syncInp, randInp)
@@ -105,6 +106,7 @@ for syncmon, randmon in zip(syncMons, randMons):
 mslope_collection = []
 slopes_collection = []
 oldslopes_collection = []
+winstart_collection = []
 vp_dist_collection = []
 kr_dist_collection = []
 for idx in range(Nsims):
@@ -117,6 +119,10 @@ for idx in range(Nsims):
     slopes_collection.append(slopes)
     oldslopes_collection.append(oldslopes)
 
+    # calculate window start
+    winstart = get_win_start(vmon[idx], outmon[idx])
+    winstart_collection.append(winstart)
+
     input_spiketrains = input_spiketrain_collection[idx]
     # calculate mean pairwise V-P distance for each interval
     print("%i: Calculating VP distance ..." % idx)
@@ -128,31 +134,84 @@ for idx in range(Nsims):
     kr_dists = interval_Kr(input_spiketrains, outmon[idx])
     kr_dist_collection.append(kr_dists)
 
+print("Saving data before plotting ...")
+np.savez("svd_fullsync_nojitt.npz",
+        slopes=slopes_collection,
+        oldslopes=oldslopes_collection,
+        winstart=winstart_collection,
+        vp_dists=vp_dist_collection,
+        kr_dists=kr_dist_collection,
+        traces=vmon.values,
+        outspikes=outmon.spiketimes.values(),
+        inspikes=input_spiketrain_collection)
+
+print("Calculating averages ...")
+# slope averages is already in ``mslope_collection`` but let's calc it anyway
+avg_slope = array([mean(slps)
+                    if len(slps) else 0
+                    for slps in slopes_collection])
+avg_oldslope = array([mean(oldslp)
+                    if len(oldslp) else 0
+                    for oldslp in oldslopes_collection])
+avg_winstart = array([mean(winstart)
+                    if len(winstart) else 0
+                    for winstart in winstart_collection])
+avg_vp = array([mean(vp)
+                if len(vp) else 0
+                for vp in vp_dist_collection])
+avg_kr = array([mean(kr)
+                if len(kr) else 0
+                for kr in kr_dist_collection])
+
 print("Plotting ...")
-subplot2grid((5,1), (0,0), rowspan=1, colspan=1)
-plot(outmon[0][1:], slopes)
-axis(xmin=0, xmax=float(duration))
+figure()
+scatter(avg_slope, avg_vp)
+title("Average normalised slope vs average V-P")
+xlabel("Slope")
+ylabel("V-P")
+savefig("slope_vs_vp.png")
 
-subplot2grid((5,1), (1,0), rowspan=1, colspan=1)
-plot(outmon[0][1:], oldslopes)
-axis(xmin=0, xmax=float(duration))
+clf()
+figure()
+scatter(avg_oldslope, avg_vp)
+title("Average normalised slope (old calc) vs average V-P")
+xlabel("Slope")
+ylabel("V-P")
+savefig("oldslope_vs_vp.png")
 
-subplot2grid((5,1), (2,0), rowspan=1, colspan=1)
-plot(outmon[0][1:], vp_dists)
-axis(xmin=0, xmax=float(duration))
+clf()
+figure()
+scatter(avg_winstart, avg_vp)
+title("Average V(t-w) vs average V-P")
+xlabel("V(t-w)")
+ylabel("V-P")
+savefig("ws_vs_vp.png")
 
-subplot2grid((5,1), (3,0), rowspan=1, colspan=1)
-plot(outmon[0][1:], kr_dists)
-axis(xmin=0, xmax=float(duration))
+figure()
+scatter(avg_slope, avg_kr)
+title("Average normalised slope vs average Kreuz")
+xlabel("Slope")
+ylabel("Kreuz")
+savefig("slope_vs_kr.png")
 
-subplot2grid((5,1), (4,0), rowspan=1, colspan=1)
-raster_plot(syncmon, randmon)
-xmin, xmax, ymin, ymax = axis()
-for ospk in outmon[0]:
-    plot([ospk*1000, ospk*1000], [ymin, ymax], 'r-')
-axis(xmin=0, xmax=float(duration)*1000)
+clf()
+figure()
+scatter(avg_oldslope, avg_kr)
+title("Average normalised slope (old calc) vs average Kreuz")
+xlabel("Slope")
+ylabel("Kreuz")
+savefig("oldslope_vs_kr.png")
 
-ion()
-show()
+clf()
+figure()
+scatter(avg_winstart, avg_kr)
+title("Average V(t-w) vs average Kreuz")
+xlabel("V(t-w)")
+ylabel("Kreuz")
+savefig("ws_vs_kr.png")
+
+print("DONE!")
+
+
 
 
