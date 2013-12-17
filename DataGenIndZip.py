@@ -52,7 +52,7 @@ def lifsim(N_in, f_out, w_in, report):
     syncMons = []
     randMons = []
     for idx, (S_in, sigma) in enumerate(input_configs):
-            sg, rg = nt.genInputGroups(N_in, f_in[idx], S_in, sigma, duration)
+            sg, rg = nt.gen_input_groups(N_in, f_in[idx], S_in, sigma, duration)
             syncGroups.append(sg)
             randGroups.append(rg)
             sm = SpikeMonitor(sg)
