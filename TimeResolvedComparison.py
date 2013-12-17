@@ -1,19 +1,9 @@
 from brian import *
 import warnings
 from spike_distance_mp import mean_pairwise_distance
-from neurotools import (norm_firing_slope, genInputGroups,
-                        npss, corrcoef_spiketrains)
+from neurotools import (gen_input_groups, pre_spike_slope,
+                        normalised_pre_spike_slope, corrcoef_spiketrains)
 from spike_distance_kreuz import multivariate_spike_distance
-
-def get_win_start(trace, spikes, w=2*ms, dt=0.1*ms):
-    if len(spikes) == 0:
-        return array([])
-    spikes = array(spikes)
-    spikes_dt = spikes/(0.1*ms)
-    spikes_dt = spikes_dt.astype(int)
-    w_dt = int(w/dt)  # 2ms/dt
-    win_start_dt = spikes_dt-w_dt
-    return trace[win_start_dt]
 
 
 def interval_VP(inputspikes, outputspikes, cost, dt=0.1*ms):
@@ -77,7 +67,7 @@ syncMons = []
 randMons = []
 for idx, sync in enumerate(S_in):
     # inputs
-    syncInp, randInp = genInputGroups(N_in, f_in, sync, sigma_in, duration, dt)
+    syncInp, randInp = gen_input_groups(N_in, f_in, sync, sigma_in, duration, dt)
     syncGens.append(syncInp)
     randGens.append(randInp)
     netw.add(syncInp, randInp)
