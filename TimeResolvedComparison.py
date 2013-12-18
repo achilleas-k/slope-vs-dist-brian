@@ -1,8 +1,8 @@
 from brian import *
 import warnings
 from spike_distance_mp import mean_pairwise_distance
-from neurotools import (gen_input_groups, pre_spike_slope,
-                        normalised_pre_spike_slope, corrcoef_spiketrains)
+from neurotools import (gen_input_groups, pre_spike_slopes,
+                        normalised_pre_spike_slopes, corrcoef_spiketrains)
 from spike_distance_kreuz import multivariate_spike_distance
 
 
@@ -33,9 +33,13 @@ def interval_corr(inputspikes, outputspikes, dt=0.1*ms, duration=None):
     for prv, nxt in zip(outputspikes[:-1], outputspikes[1:]):
         interval_inputs = []
         for insp in inputspikes:
-            interval_inputs.append(insp[(prv < insp) & (insp < nxt+dt)])
-            # TODO: spike times should be shifted to time = 0
-        corrs_i = mean(corrcoef_spiketrains(interval_inputs, dt, duration))
+            interval_spikes = insp[(prv < insp) & (insp < nxt+dt)]-prv
+            if len(interval_spikes):
+                interval_inputs.append(interval_spikes)
+        if len(interval_inputs):
+            corrs_i = mean(corrcoef_spiketrains(interval_inputs, dt, duration))
+        else:
+            corrs.append(0)
         corrs.append(corrs_i)
     return corrs
 
@@ -47,6 +51,7 @@ slope_w = 2*msecond
 dcost = float(2/slope_w)
 
 Vth = 15*mV
+tau = 10*ms
 N_in = 100
 f_in = 30*Hz
 S_in = frange(0, 1, 0.1)
@@ -54,8 +59,8 @@ sigma_in = 1*ms
 Nsims = len(S_in)
 
 # neuron
-neuron = NeuronGroup(Nsims, "dV/dt = -V/(10*ms) : volt",
-        threshold="V>Vth", reset="V=0*mvolt")
+neuron = NeuronGroup(Nsims, "dV/dt = -V/tau : volt",
+                     threshold="V>Vth", reset="V=0*mvolt", refractory=1*ms)
 neuron.V = 0*mvolt
 netw = Network(neuron)
 
@@ -107,26 +112,24 @@ for syncmon, randmon in zip(syncMons, randMons):
     input_spiketrains = array(input_spiketrains)
     input_spiketrain_collection.append(input_spiketrains)
 
-mslope_collection = []
 slopes_collection = []
-oldslopes_collection = []
-winstart_collection = []
+npss_collection = []
 vp_dist_collection = []
 kr_dist_collection = []
 corr_collection = []
 for idx in range(Nsims):
-    # calculate npss
-    print("%i: Calculating slope measure ..." % idx)
-    mslope, slopes = norm_firing_slope(vmon[idx], outmon[idx],
-            Vth, 2*ms, dt)
-    _, oldslopes = npss(vmon[idx], outmon[idx], Vth, 2*ms, dt)
-    mslope_collection.append(mslope)
+    if len(outmon[idx]) <= 1:
+        print("Simulation %i fired %i spikes. Discarding ..." % (
+            idx, len(outmon[idx])))
+        continue  # drop it
+    print("%i: Calculating slopes ..." % idx)
+    slopes = pre_spike_slopes(vmon[idx], outmon[idx], Vth, slope_w, dt)
     slopes_collection.append(slopes)
-    oldslopes_collection.append(oldslopes)
 
-    # calculate window start
-    winstart = get_win_start(vmon[idx], outmon[idx])
-    winstart_collection.append(winstart)
+    print("%i: Calculating normalised slopes ..." % idx)
+    npss = normalised_pre_spike_slopes(vmon[idx], outmon[idx], 0*mV, Vth, tau,
+                                       slope_w, dt)
+    npss_collection.append(npss)
 
     input_spiketrains = input_spiketrain_collection[idx]
     # calculate mean pairwise V-P distance for each interval
@@ -146,27 +149,23 @@ for idx in range(Nsims):
 
 print("Saving data before plotting ...")
 np.savez("svd_fullsync_nojitt.npz",
-        slopes=slopes_collection,
-        oldslopes=oldslopes_collection,
-        winstart=winstart_collection,
-        vp_dists=vp_dist_collection,
-        kr_dists=kr_dist_collection,
-        input_corrs=corr_collection,
-        traces=vmon.values,
-        outspikes=outmon.spiketimes.values(),
-        inspikes=input_spiketrain_collection)
+         slopes=slopes_collection,
+         npss=npss_collection,
+         vp_dists=vp_dist_collection,
+         kr_dists=kr_dist_collection,
+         input_corrs=corr_collection,
+         traces=vmon.values,
+         outspikes=outmon.spiketimes.values(),
+         inspikes=input_spiketrain_collection)
 
 print("Calculating averages ...")
 # slope averages is already in ``mslope_collection`` but let's calc it anyway
 avg_slope = array([mean(slps)
-                    if len(slps) else 0
-                    for slps in slopes_collection])
-avg_oldslope = array([mean(oldslp)
-                    if len(oldslp) else 0
-                    for oldslp in oldslopes_collection])
-avg_winstart = array([mean(winstart)
-                    if len(winstart) else 0
-                    for winstart in winstart_collection])
+                   if len(slps) else 0
+                   for slps in slopes_collection])
+avg_npss = array([mean(slps)
+                  if len(slps) else 0
+                  for slps in npss_collection])
 avg_vp = array([mean(vp)
                 if len(vp) else 0
                 for vp in vp_dist_collection])
@@ -174,64 +173,56 @@ avg_kr = array([mean(kr)
                 if len(kr) else 0
                 for kr in kr_dist_collection])
 avg_corr = array([mean(cr)
-                if len(cr) else 0
-                for cr in corr_collection])
+                  if len(cr) else 0
+                  for cr in corr_collection])
 
 
 print("Plotting ...")
 figure()
 scatter(avg_slope, avg_vp)
-title("Average normalised slope vs average V-P")
+title("Average slope vs average V-P")
 xlabel("Slope")
 ylabel("V-P")
 savefig("slope_vs_vp.png")
 
 clf()
 figure()
-scatter(avg_oldslope, avg_vp)
-title("Average normalised slope (old calc) vs average V-P")
-xlabel("Slope")
+scatter(avg_npss, avg_vp)
+title("Average normalised slope vs average V-P")
+xlabel("Normalised slope")
 ylabel("V-P")
-savefig("oldslope_vs_vp.png")
-
-clf()
-figure()
-scatter(avg_winstart, avg_vp)
-title("Average V(t-w) vs average V-P")
-xlabel("V(t-w)")
-ylabel("V-P")
-savefig("ws_vs_vp.png")
+savefig("npss_vs_vp.png")
 
 figure()
 scatter(avg_slope, avg_kr)
-title("Average normalised slope vs average Kreuz")
+title("Average slope vs average Kreuz")
 xlabel("Slope")
 ylabel("Kreuz")
 savefig("slope_vs_kr.png")
 
 clf()
 figure()
-scatter(avg_oldslope, avg_kr)
-title("Average normalised slope (old calc) vs average Kreuz")
+scatter(avg_npss, avg_kr)
+title("Average normalised slope vs average Kreuz")
+xlabel("Normalised slope")
+ylabel("Kreuz")
+savefig("npss_vs_kr.png")
+
+clf()
+figure()
+scatter(avg_slope, avg_corr)
+title("Average slope vs average correlation coefficient")
 xlabel("Slope")
-ylabel("Kreuz")
-savefig("oldslope_vs_kr.png")
-
-clf()
-figure()
-scatter(avg_winstart, avg_kr)
-title("Average V(t-w) vs average Kreuz")
-xlabel("V(t-w)")
-ylabel("Kreuz")
-savefig("ws_vs_kr.png")
-
-clf()
-figure()
-scatter(avg_winstart, avg_corr)
-title("Average V(t-w) vs average correlation coefficient")
-xlabel("V(t-w)")
 ylabel("Corr coef")
-savefig("ws_vs_cc.png")
+savefig("slope_vs_cc.png")
+
+clf()
+figure()
+scatter(avg_npss, avg_corr)
+title("Average normalised slope vs average correlation coefficient")
+xlabel("Noormalised slope")
+ylabel("Corr coef")
+savefig("npss_vs_cc.png")
 
 print("DONE!")
 
