@@ -4,6 +4,8 @@ from spike_distance_mp import mean_pairwise_distance
 from neurotools import (gen_input_groups, pre_spike_slopes,
                         normalised_pre_spike_slopes, corrcoef_spiketrains)
 from spike_distance_kreuz import multivariate_spike_distance
+import itertools as itt
+import uuid
 
 
 def interval_VP(inputspikes, outputspikes, cost, dt=0.1*ms):
@@ -44,7 +46,7 @@ def interval_corr(inputspikes, outputspikes, dt=0.1*ms, duration=None):
     return corrs
 
 defaultclock.dt = dt = 0.1*ms
-duration = 1*second
+duration = 5*second
 
 warnings.simplefilter("always")
 slope_w = 2*msecond
@@ -52,14 +54,16 @@ dcost = float(2/slope_w)
 
 Vth = 15*mV
 tau = 10*ms
-N_in = 100
-f_in = 30*Hz
-S_in = frange(0, 1, 0.1)
-sigma_in = 1*ms
-Nsims = len(S_in)
+num_inputs = [100]
+input_frequencies = [30*Hz]
+input_weights = [0.3*mV]
+input_synchronies = frange(0, 1, 0.1)
+input_jitters = frange(0, 4, 1)*ms
+num_simulations = (len(num_inputs)*len(input_frequencies)*
+                   len(input_synchronies)*len(input_jitters))
 
 # neuron
-neuron = NeuronGroup(Nsims, "dV/dt = -V/tau : volt",
+neuron = NeuronGroup(num_simulations, "dV/dt = -V/tau : volt",
                      threshold="V>Vth", reset="V=0*mvolt", refractory=1*ms)
 neuron.V = 0*mvolt
 netw = Network(neuron)
@@ -70,15 +74,34 @@ syncCons = []
 randCons = []
 syncMons = []
 randMons = []
-for idx, sync in enumerate(S_in):
+configurations = []
+uuids = []
+for idx, (sync, sgm, inrate, n_in, weight) in enumerate(itt.product(
+        input_synchronies, input_jitters,
+        input_frequencies, num_inputs, input_weights)):
+    print("%i/%i - Setting up simulation with the following parameters:" % (
+        idx, num_simulations))
+    print("\tS_in: %f" % (sync))
+    print("\tsigma: %f" % (sgm))
+    print("\tf_in: %f" % (inrate))
+    print("\tN_in: %f" % (n_in))
+    print("\tweight: %f" % (weight))
+    id = uuid.uuid4().hex
+    uuids.append(id)  # ordered list of uuids to be used by the results
+    configurations.append({'id': id,
+                           'S_in': sync,
+                           'sigma': sgm,
+                           'f_in': inrate,
+                           'N_in': n_in,
+                           'weight': weight})
     # inputs
-    syncInp, randInp = gen_input_groups(N_in, f_in, sync, sigma_in, duration, dt)
+    syncInp, randInp = gen_input_groups(n_in, inrate, sync, sgm*second, duration, dt)
     syncGens.append(syncInp)
     randGens.append(randInp)
     netw.add(syncInp, randInp)
     # connections
-    syncCon = Connection(syncInp, neuron[idx], "V", weight=0.3*mV)
-    randCon = Connection(randInp, neuron[idx], "V", weight=0.3*mV)
+    syncCon = Connection(syncInp, neuron[idx], "V", weight=weight)
+    randCon = Connection(randInp, neuron[idx], "V", weight=weight)
     syncCons.append(syncCon)
     randCons.append(randCon)
     netw.add(syncCon, randCon)
@@ -117,7 +140,8 @@ npss_collection = []
 vp_dist_collection = []
 kr_dist_collection = []
 corr_collection = []
-for idx in range(Nsims):
+results = {}
+for idx in range(num_simulations):
     if len(outmon[idx]) <= 1:
         print("Simulation %i fired %i spikes. Discarding ..." % (
             idx, len(outmon[idx])))
@@ -147,8 +171,17 @@ for idx in range(Nsims):
     corrs = interval_corr(input_spiketrains, outmon[idx], dt, duration)
     corr_collection.append(corrs)
 
+    results[uuids[idx]] = { 'mem': vmon[idx],
+                            'outspikes': outmon[idx],
+                            'inspikes': input_spiketrains,
+                            'slopes': slopes,
+                            'npss': npss,
+                            'vp_dists': vp_dists,
+                            'kr_dists': kr_dists,
+                            'correlations': corrs}
+
 print("Saving data before plotting ...")
-np.savez("svd_fullsync_nojitt.npz",
+np.savez("data_breakdown.npz",
          slopes=slopes_collection,
          npss=npss_collection,
          vp_dists=vp_dist_collection,
@@ -157,6 +190,10 @@ np.savez("svd_fullsync_nojitt.npz",
          traces=vmon.values,
          outspikes=outmon.spiketimes.values(),
          inspikes=input_spiketrain_collection)
+
+np.savez("svd_sin_sigma_range.npz",
+         configurations=configurations,
+         results=results)
 
 print("Calculating averages ...")
 # slope averages is already in ``mslope_collection`` but let's calc it anyway
