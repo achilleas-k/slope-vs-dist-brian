@@ -59,7 +59,7 @@ input_frequencies = [10*Hz, 30*Hz, 50*Hz, 100*Hz]
 input_weights = [0.1*mV, 0.3*mV, 0.6*mV]
 input_synchronies = frange(0, 1, 0.1)
 input_jitters = frange(0, 4, 1)*ms
-num_simulations = (len(num_inputs)*len(input_frequencies)*
+num_simulations = (len(num_inputs)*len(input_frequencies)*len(input_weights)*
                    len(input_synchronies)*len(input_jitters))
 
 # neuron
@@ -100,11 +100,14 @@ for idx, (sync, sgm, inrate, n_in, weight) in enumerate(itt.product(
     randGens.append(randInp)
     netw.add(syncInp, randInp)
     # connections
-    syncCon = Connection(syncInp, neuron[idx], "V", weight=weight)
-    randCon = Connection(randInp, neuron[idx], "V", weight=weight)
-    syncCons.append(syncCon)
-    randCons.append(randCon)
-    netw.add(syncCon, randCon)
+    if len(syncInp):
+        syncCon = Connection(syncInp, neuron[idx], "V", weight=weight)
+        syncCons.append(syncCon)
+        netw.add(syncCon)
+    if len(randInp):
+        randCon = Connection(randInp, neuron[idx], "V", weight=weight)
+        randCons.append(randCon)
+        netw.add(randCon)
     # monitors
     syncmon = SpikeMonitor(syncInp)
     randmon = SpikeMonitor(randInp)
