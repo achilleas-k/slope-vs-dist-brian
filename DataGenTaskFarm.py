@@ -135,17 +135,11 @@ def lifsim(sync, sgm, inrate, n_in, weight):
 if __name__=='__main__':
     print("Setting up ...")
     data = DataManager("meindata")
-    #num_inputs = [50, 100, 200]
-    #input_frequencies = [10*Hz, 30*Hz, 50*Hz, 100*Hz]
-    #input_weights = [0.1*mV, 0.3*mV, 0.6*mV]
-    #input_synchronies = frange(0, 1, 0.1)
-    #input_jitters = frange(0, 4, 1)*ms
-
-    num_inputs = [50]
-    input_frequencies = [30]  # Hz
-    input_weights = [0.0006]  # volt
-    input_synchronies = frange(0, 1, 0.5)
-    input_jitters = frange(0, 4, 4)*0.001  # second
+    num_inputs = [50, 100, 200]
+    input_frequencies = [10*Hz, 30*Hz, 50*Hz, 100*Hz]
+    input_weights = [0.1*mV, 0.3*mV, 0.6*mV]
+    input_synchronies = frange(0, 1, 0.1)
+    input_jitters = frange(0, 4, 1)*ms
     num_simulations = (len(num_inputs)*len(input_frequencies)*len(input_weights)*
                        len(input_synchronies)*len(input_jitters))
     params = itt.product(input_synchronies, input_jitters, input_frequencies,
