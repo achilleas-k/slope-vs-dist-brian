@@ -136,10 +136,10 @@ if __name__=='__main__':
     print("Setting up ...")
     data = DataManager("meindata")
     num_inputs = [50, 100, 200]
-    input_frequencies = [10*Hz, 30*Hz, 50*Hz, 100*Hz]
-    input_weights = [0.1*mV, 0.3*mV, 0.6*mV]
+    input_frequencies = [10, 30, 50, 100]  # Hz
+    input_weights = [0.0001, 0.0003, 0.0006]  # volt
     input_synchronies = frange(0, 1, 0.1)
-    input_jitters = frange(0, 4, 1)*ms
+    input_jitters = frange(0, 4, 1)*0.001  # second
     num_simulations = (len(num_inputs)*len(input_frequencies)*len(input_weights)*
                        len(input_synchronies)*len(input_jitters))
     params = itt.product(input_synchronies, input_jitters, input_frequencies,
@@ -150,7 +150,6 @@ if __name__=='__main__':
     print("Simulations done!\nReading data out of data manager ...")
     configurations = []
     results = []
-    import IPython; IPython.embed()
     for datum in data.itervalues():
         if datum:
             configurations.append(datum['config'])

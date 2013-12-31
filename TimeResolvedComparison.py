@@ -55,10 +55,10 @@ dcost = float(2/slope_w)
 Vth = 15*mV
 tau = 10*ms
 num_inputs = [50, 100, 200]
-input_frequencies = [10*Hz, 30*Hz, 50*Hz, 100*Hz]
-input_weights = [0.1*mV, 0.3*mV, 0.6*mV]
+input_frequencies = [10, 30, 50, 100]  # Hz
+input_weights = [0.0001, 0.0003, 0.0006]  # volt
 input_synchronies = frange(0, 1, 0.1)
-input_jitters = frange(0, 4, 1)*ms
+input_jitters = frange(0, 4, 1)*0.0001  # second
 num_simulations = (len(num_inputs)*len(input_frequencies)*len(input_weights)*
                    len(input_synchronies)*len(input_jitters))
 
