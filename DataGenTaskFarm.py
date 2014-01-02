@@ -9,6 +9,8 @@ from spike_distance_kreuz import multivariate_spike_distance
 import itertools as itt
 import gc
 from time import time
+import os
+import zipfile
 
 defaultclock.dt = dt = 0.1*ms
 duration = 5*second
@@ -96,10 +98,9 @@ def lifsim(sync, sgm, inrate, n_in, weight):
     outmon = SpikeMonitor(neuron)
     netw.add(vmon, outmon)
     # run
-    netw.run(duration, report="stdout")
+    netw.run(duration, report=None)
 
     if outmon.nspikes < 2:
-        print("LESS THAN TWO SPIKES FIRED!")
         return
     vmon.insert_spikes(outmon, Vth)
     input_spiketrains = syncmon.spiketimes.values()
@@ -128,8 +129,10 @@ def lifsim(sync, sgm, inrate, n_in, weight):
                'vp_dists': vp_dists,
                'kr_dists': kr_dists,
                'correlations': corrs}
-    return {'config': config,
-            'results': results}
+    np.savez("%i.npz" % seed, config=config, results=results)
+    return
+    #return {'config': config,
+    #        'results': results}
 
 
 if __name__=='__main__':
@@ -140,24 +143,37 @@ if __name__=='__main__':
     input_weights = [0.0001, 0.0003, 0.0006]  # volt
     input_synchronies = frange(0, 1, 0.1)
     input_jitters = frange(0, 4, 1)*0.001  # second
-    num_simulations = (len(num_inputs)*len(input_frequencies)*len(input_weights)*
-                       len(input_synchronies)*len(input_jitters))
+    # test parameter values
+    #num_inputs = [50]
+    #input_frequencies = [30, 50]
+    #input_weights = [0.0006]
+    #input_synchronies = [0.5, 1]
+    #input_jitters = [0.002, 0.004]
+    num_simulations = (len(num_inputs)*
+                       len(input_frequencies)*
+                       len(input_weights)*
+                       len(input_synchronies)*
+                       len(input_jitters))
     params = itt.product(input_synchronies, input_jitters, input_frequencies,
                          num_inputs, input_weights)
     print("Simulations configured. Running ...")
     run_tasks(data, lifsim, params, gui=False, poolsize=0,
               numitems=num_simulations)
-    print("Simulations done!\nReading data out of data manager ...")
-    configurations = []
-    results = []
-    for datum in data.itervalues():
-        if datum:
-            configurations.append(datum['config'])
-            results.append(datum['results'])
-    print("Saving data in .npz format ...")
-    np.savez("svd_sin_sigma_range.npz",
-             configurations=configurations,
-             results=results)
+    print("Simulations done!\nGathering npz files ...")
+    # DataManager doesn't work on grid
+    #for datum in data.itervalues():
+    #    if datum:
+    #        configurations.append(datum['config'])
+    #        results.append(datum['results'])
+    #np.savez("svd_sin_sigma_range.npz",
+    #         configurations=configurations,
+    #         results=results)
+    zf = zipfile.ZipFile("results.zip", mode="w")
+    for filename in os.listdir("."):
+        if filename.endswith("npz"):
+            print("Adding %s to zipfile ..." % (filename))
+            zf.write(filename)
+    print("npz files stored in results.zip")
     print("DONE!")
 
 
