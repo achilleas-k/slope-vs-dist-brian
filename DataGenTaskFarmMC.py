@@ -68,9 +68,9 @@ def lifsim(sync, sgm, inrate, n_in, weight):
     gc.collect()
     reinit_default_clock()
     seed = int(time()+(sync+sgm+inrate+n_in+weight)*1e3)
-    sgm *= second
-    inrate *= Hz
-    weight *= volt
+    sgm = sgm*second
+    inrate = inrate*Hz
+    weight = weight*volt
     Vth = 15*mV
     tau = 10*ms
 
@@ -141,9 +141,9 @@ def lifsim(sync, sgm, inrate, n_in, weight):
 if __name__=='__main__':
     print("Setting up ...")
     data = DataManager("meindata")
-    num_sims = 100
+    num_sims = 1
     num_inputs = 50+randint(150, size=num_sims)  # 50, 200
-    input_frequencies = 10+randint(90, size=num_sims)  # 10, 100
+    input_frequencies = 10+np.round(90*random(num_sims), 0)  # 10, 100
     input_weights = np.round(5e-4*random(num_sims)+1e-4, 5)  # 1e-4, 5e-4
     input_synchronies = np.round(random(num_sims), 2)  # 0, 1
     input_jitters = np.round(4e-3*random(num_sims), 4)  # 0, 4e-3
