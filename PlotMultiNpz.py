@@ -42,7 +42,7 @@ savefig("npss_kr.png")
 
 # plot individual points
 hold(True)
-for n, c, v, k in zip(npss, corr, vp_dist, kr_dist):
+for n, c, v, k in zip(npss, corr, vp_d, kr_d):
     figure(1)
     scatter(n, c, '.k')
     figure(2)
