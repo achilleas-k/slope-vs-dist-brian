@@ -141,7 +141,7 @@ def lifsim(sync, sgm, inrate, n_in, weight):
 if __name__=='__main__':
     print("Setting up ...")
     data = DataManager("meindata")
-    num_sims = 1
+    num_sims = 100
     num_inputs = 50+randint(150, size=num_sims)  # 50, 200
     input_frequencies = 10+np.round(90*random(num_sims), 0)  # 10, 100
     input_weights = np.round(5e-4*random(num_sims)+1e-4, 5)  # 1e-4, 5e-4
