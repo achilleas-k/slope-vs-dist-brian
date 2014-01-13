@@ -147,8 +147,8 @@ if __name__=='__main__':
     input_weights = np.round(5e-4*random(num_sims)+1e-4, 5)  # 1e-4, 5e-4
     input_synchronies = np.round(random(num_sims), 2)  # 0, 1
     input_jitters = np.round(4e-3*random(num_sims), 4)  # 0, 4e-3
-    params = zip(num_inputs, input_frequencies, input_weights,
-                 input_synchronies, input_jitters)
+    params = zip(input_synchronies, input_jitters, input_frequencies,
+                 num_inputs, input_weights)
     print("Simulations configured. Running ...")
     run_tasks(data, lifsim, params, gui=False, poolsize=0,
               numitems=num_sims)
