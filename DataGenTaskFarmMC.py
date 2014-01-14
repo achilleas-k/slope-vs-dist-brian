@@ -46,17 +46,17 @@ def interval_Kr(inputspikes, outputspikes, dt=0.1*ms):
     return krdists
 
 
-def interval_corr(inputspikes, outputspikes, dt=0.1*ms, duration=None):
-    dt = float(dt)
+def interval_corr(inputspikes, outputspikes, b=0.1*ms, duration=None):
+    b = float(b)
     corrs = []
     for prv, nxt in zip(outputspikes[:-1], outputspikes[1:]):
         interval_inputs = []
         for insp in inputspikes:
-            interval_spikes = insp[(prv < insp) & (insp < nxt+dt)]-prv
+            interval_spikes = insp[(prv < insp) & (insp < nxt+b)]-prv
             if len(interval_spikes):
                 interval_inputs.append(interval_spikes)
         if len(interval_inputs):
-            corrs_i = mean(corrcoef_spiketrains(interval_inputs, dt, duration))
+            corrs_i = mean(corrcoef_spiketrains(interval_inputs, b, duration))
         else:
             corrs.append(0)
         corrs.append(corrs_i)
@@ -123,7 +123,7 @@ def lifsim(sync, sgm, inrate, n_in, weight):
     kr_dists = interval_Kr(input_spiketrains, outmon[0])
 
     # calculate mean correlation coefficient
-    corrs = interval_corr(input_spiketrains, outmon[0], dt, duration)
+    corrs = interval_corr(input_spiketrains, outmon[0], w, duration)
 
     results = {'id': seed,
                'mem': vmon[0],
