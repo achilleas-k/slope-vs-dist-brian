@@ -123,7 +123,7 @@ def lifsim(sync, sgm, inrate, n_in, weight):
     kr_dists = interval_Kr(input_spiketrains, outmon[0])
 
     # calculate mean correlation coefficient
-    corrs = interval_corr(input_spiketrains, outmon[0], w, duration)
+    corrs = interval_corr(input_spiketrains, outmon[0], slope_w, duration)
 
     results = {'id': seed,
                'mem': vmon[0],
