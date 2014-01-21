@@ -20,7 +20,8 @@ for datadir in directories:
         conf = npzdata["config"].item()
         results.append(res)
         configs.append(conf)
-        print("Finished reading %s (%i/%i)" % (npzfile, idx+1, npzcount), end="\r")
+        print("Finished reading %s (%i/%i)" % (npzfile, idx+1, npzcount),
+              end="\r")
     print("")
 
 # recalculate correlation coefficient with bin=w (takes ALL THE AGES)
@@ -73,7 +74,6 @@ for idx, (res, notnan_idx) in enumerate(zip(results, notnan)):
     mm_d_mean.append(mean(mm_d))
     print("Finished calculating %i/%i" % (idx+1, len(results)), end="\r")
     sys.stdout.flush()
-os.mkdir("plots")
 
 allresults = {"npss": npss, "npss_mean": npss_mean,
               "corr": corr, "corr_mean": corr_mean,
@@ -84,6 +84,10 @@ allresults = {"npss": npss, "npss_mean": npss_mean,
 pickle.dump(allresults, open("metric_comp_results.pkl", "w"))
 print("Results and averages saved to metric_comp_results.pkl")
 
+try:
+    os.mkdir("plots")
+except OSError:
+    pass
 
 # plot means
 scatter(npss_mean, corr_mean)
@@ -133,10 +137,15 @@ clf()
 print("Correlation between means:")
 print("\tNPSS\tCorr\tV-P\tKreuz")
 labels = ["NPSS", "Corr", "V-P", "Kreuz"]
-for cc, l in zip(corrcoef((npss_mean, corr_mean, vp_d_mean, kr_d_mean)), labels):
+for cc, l in zip(corrcoef((npss_mean, corr_mean,
+                           vp_d_mean, kr_d_mean)),
+                 labels):
     print(l, end="")
     for c in cc:
         print("\t%0.2f" % (c), end="")
     print("")
 
 print("Done!")
+
+
+
