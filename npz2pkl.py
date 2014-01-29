@@ -47,12 +47,12 @@ else:
     sigma = [conf["sigma"] for conf in configs]
     weight = [conf["weight"] for conf in configs]
 
-configs = {"N_in": N_in,
-           "S_in": S_in,
-           "f_in": f_in,
-           "id": uuid,
-           "sigma": sigma,
-           "weight": weight, }
+    configs = {"N_in": N_in,
+               "S_in": S_in,
+               "f_in": f_in,
+               "id": uuid,
+               "sigma": sigma,
+               "weight": weight, }
 
 conf_res = {"config": configs,
             "results": results, }
