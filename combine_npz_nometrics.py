@@ -13,7 +13,8 @@ import time
 directories = sys.argv[1:]
 
 configs = []
-recorded = []
+spikes = []
+traces = []
 npss = []
 for datadir in directories:
     print("Loading files from %s ..." % (datadir))
@@ -25,17 +26,23 @@ for datadir in directories:
         res_all = npzdata["results"].item()
         conf = npzdata["config"].item()
         id = res_all["id"]
-        rec = {
-            "id": res_all["id"],
+        spks = {
+            "id": id,
             "inspikes": res_all["inspikes"],
             "outspikes": res_all["outspikes"],
-            "mem": res_all["mem"]
+        }
+        trc = {
+            "id": id,
+            "trace": res_all["mem"]
         }
         conf["id"] = id
-        npss_i = {"id": id,
-                  "npss": res_all["npss"]}
+        npss_i = {
+            "id": id,
+            "npss": res_all["npss"]
+        }
         configs.append(conf)
-        recorded.append(rec)
+        spikes.append(spks)
+        traces.append(trc)
         npss.append(npss_i)
         print("Finished reading %s (%i/%i)" % (npzfile, idx+1, npzcount),
               end="\r")
@@ -43,16 +50,13 @@ for datadir in directories:
 
 datenow = time.localtime()
 isodate = "%i-%02i-%02i" % (datenow.tm_year, datenow.tm_mon, datenow.tm_mday)
-configs_npz = "configs_%s.npz" % isodate
-np.savez(configs_npz, configs)
-print("Saved %s." % (configs_npz))
-recorded_npz = "monitors_%s.npz" % isodate
-np.savez(recorded_npz, recorded)
-print("Saved %s." % (recorded_npz))
-npss_npz = "npzz_%s.npz" % isodate
-np.savez(npss_npz, npss)
-print("Saved %s." % (npss_npz))
 
+for listname, listdata in zip(
+    ["configs", "spikes", "traces", "npss"],
+    [configs, spikes, traces, npss]):
+    npz_filename = "%s_%s.npz" % (isodate, listname)
+    np.savez_compressed(npz_filename, data=listdata)
+    print("Saved %s." % (npz_filename))
 
 print("Done!")
 
