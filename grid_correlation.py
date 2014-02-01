@@ -17,6 +17,6 @@ spikes = np.load("2014-01-31_spikes.npz")["data"]
 
 pool = mp.Pool()
 corrcoef = pool.map(call_interval_cc, spikes)
-np.savez("victor_purpura.npz", data=corrcoef)
+np.savez("correlation.npz", data=corrcoef)
 
 
