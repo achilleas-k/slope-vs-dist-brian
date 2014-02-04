@@ -1,5 +1,4 @@
 import sys
-sys.path.append("./spikerlib.egg")
 from spikerlib.metrics import corrcoef as cc
 import numpy as np
 import multiprocessing as mp

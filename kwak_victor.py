@@ -1,5 +1,4 @@
 import sys
-sys.path.append("./spikerlib.egg")
 from spikerlib.metrics import victor_purpura as vp
 import numpy as np
 import multiprocessing as mp

@@ -1,5 +1,4 @@
 import sys
-sys.path.append("./spikerlib.egg")
 from spikerlib.metrics import modulus_metric as mm
 import numpy as np
 import multiprocessing as mp
@@ -24,4 +23,5 @@ for idx, mod_item in enumerate(modulus_iter, 1):
 print("Calculation complete. Saving to modulus.npz")
 np.savez("modulus.npz", data=modulus)
 print("DONE!")
+
 
