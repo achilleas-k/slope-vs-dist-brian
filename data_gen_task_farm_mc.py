@@ -60,7 +60,7 @@ def interval_corr(inputspikes, outputspikes, b=0.1*ms, duration=None):
     return corrs
 
 
-def lifsim(sync, sgm, inrate, n_in, weight):
+def lifsim(sync, sgm, N_in, inrate, weight):
     clear(True)
     gc.collect()
     reinit_default_clock()
@@ -76,7 +76,7 @@ def lifsim(sync, sgm, inrate, n_in, weight):
                          threshold="V>Vth", reset="V=0*mvolt", refractory=1*ms)
     neuron.V = 0*mvolt
     netw = Network(neuron)
-    config = {'id': seed,  # can use seed as id instead of uuid
+    config = {'id': seed,
               'S_in': sync,
               'sigma': sgm,
               'f_in': inrate,
@@ -144,8 +144,8 @@ if __name__=='__main__':
     input_weights = np.round(5e-4*random(num_sims)+1e-4, 5)  # 1e-4, 5e-4
     input_synchronies = np.round(random(num_sims), 2)  # 0, 1
     input_jitters = np.round(4e-3*random(num_sims), 4)  # 0, 4e-3
-    params = zip(input_synchronies, input_jitters, input_frequencies,
-                 num_inputs, input_weights)
+    params = zip(input_synchronies, input_jitters, num_inputs,
+                 input_frequencies, input_weights)
     print("Simulations configured. Running ...")
     run_tasks(data, lifsim, params, gui=False, poolsize=0,
               numitems=num_sims)
