@@ -10,13 +10,14 @@ nitems = len(measure_npz.keys())
 npss = []
 modulus = []
 vp = []
-kr = np.random.random(nitems)
+kr = []
 corr = np.random.random(nitems)
 for k, v in measure_npz.iteritems():
     v = v.item()  # this again
     npss.append(np.mean(v["npss"]))
     modulus.append(v["modulus"][0])
     vp.append(v["vp"][0])
+    kr.append(v["kreuz"][0])
 
 try:
     os.mkdir("plots")
