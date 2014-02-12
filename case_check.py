@@ -23,16 +23,23 @@ lif_neuron = NeuronGroup(1, "dV/dt = -V/(10*ms) : volt",
 lif_neuron.V = 0*mV
 netw.add(lif_neuron)
 
-Nin = 30
-input_idx = range(10)
-input_times = [10*ms]*5+list(arange(20, 35)*ms)
-input_times.extend(array([150*ms]*10))
-#input_times.extend(array([200*ms]*10)-rand(10)*10*ms)
-#input_times.extend(array([300*ms]*20)-rand(20)*30*ms)
+Nin = 20
+input_idx = range(Nin)
+# three spikes caused by high early synchrony with low late synchrony
+input_times = []
+for strt in [0, 50, 100, 150, 200]:
+    new_its = [17*ms]*5+[18*ms]*5+[st*ms for st in range(20, 30)]
+    input_times += [ni+strt*ms for ni in new_its]
+# three more caused by the opposite
+for strt in [250, 300, 350, 400, 450]:
+    new_its = [st*ms for st in range(10, 20)]+[25*ms]*5+[26*ms]*5
+    input_times += [ni+strt*ms for ni in new_its]
+
+# convert to (input, time) pairs
 input_spikes = [(i, t) for i, t in zip(itt.cycle(input_idx), input_times)]
 #print(input_spikes)
 input_group = SpikeGeneratorGroup(Nin, input_spikes)
-connection = Connection(input_group, lif_neuron, "V", weight=2.3*mV)
+connection = Connection(input_group, lif_neuron, "V", weight=1.6*mV)
 netw.add(input_group, connection)
 
 input_mon = SpikeMonitor(input_group)
