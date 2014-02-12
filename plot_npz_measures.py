@@ -57,7 +57,7 @@ print("--\nCorrelation between means:")
 print("\tNPSS\tCorr\tV-P\tKreuz")
 labels = ["NPSS", "Corr", "V-P", "Kreuz", "Modulus"]
 
-#import IPython; IPython.embed()
+# import IPython; IPython.embed()
 for cc, l in zip(np.corrcoef((npss, corr,
                               vp, kr, modulus)),
                  labels):
