@@ -25,16 +25,17 @@ netw.add(lif_neuron)
 
 Nin = 20
 input_idx = range(Nin)
-# three spikes caused by high early synchrony with low late synchrony
 input_times = []
-for strt in [0, 50, 100, 150, 200]:
-    new_its = [17*ms]*5+[18*ms]*5+[st*ms for st in range(20, 30)]
-    input_times += [ni+strt*ms for ni in new_its]
 # three more caused by the opposite
-for strt in [250, 300, 350, 400, 450]:
-    new_its = [st*ms for st in range(10, 20)]+[25*ms]*5+[26*ms]*5
+for strt in [50, 100, 150, 200]:
+    new_its = ([ni*ms for ni in np.random.normal(10, 1.0, 10)]+
+               [ni*ms for ni in np.random.normal(20, 1.5, 10)])
     input_times += [ni+strt*ms for ni in new_its]
-
+# three spikes caused by high early synchrony with low late synchrony
+for strt in [250, 300, 350, 400, 450]:
+    new_its = ([ni*ms for ni in np.random.normal(20, 0.5, 10)]+
+               [ni*ms for ni in np.random.normal(10, 2.0, 10)])
+    input_times += [ni+strt*ms for ni in new_its]
 # convert to (input, time) pairs
 input_spikes = [(i, t) for i, t in zip(itt.cycle(input_idx), input_times)]
 #print(input_spikes)
@@ -62,7 +63,7 @@ for prev_st, spiketime in zip(spiketimes[:-1], spiketimes[1:]):
     input_spikes = input_mon.spiketimes.values()
 
     isi = spiketime-prev_st
-    kreuz_bins = int(isi/ms)
+    kreuz_bins = int(isi/(2*ms))
     t, krd = kreuz.interval(input_spikes, [prev_st, spiketime], kreuz_bins)
     kreuz_dist[0].extend(list(t[0]))
     kreuz_dist[1].extend(list(krd[0]))
@@ -95,4 +96,5 @@ axis(metric_axes)
 axis(xmin=0, xmax=xmax)
 legend()
 show()
+
 
