@@ -11,13 +11,16 @@ npss = []
 modulus = []
 vp = []
 kr = []
-corr = np.random.random(nitems)
+corr = []
 for k, v in measure_npz.iteritems():
     v = v.item()  # this again
+    if np.any(np.isnan(v["npss"])):
+        continue
     npss.append(np.mean(v["npss"]))
     modulus.append(v["modulus"][0])
     vp.append(v["vp"][0])
     kr.append(v["kreuz"][0])
+    corr.append(np.random.random())
 
 try:
     os.mkdir("plots")
@@ -44,16 +47,17 @@ for ext in imgtypes:
     print("Plotted npss_kr.%s" % ext)
 clf()
 scatter(npss, modulus)
+xlabel("NPSS"); ylabel("Modulus")
 for ext in imgtypes:
     savefig("plots/npps_modm.%s" % ext)
     print("Plotted npss_modm.%s" % ext)
 clf()
 
-print("Correlation between means:")
+print("--\nCorrelation between means:")
 print("\tNPSS\tCorr\tV-P\tKreuz")
 labels = ["NPSS", "Corr", "V-P", "Kreuz", "Modulus"]
 
-import IPython; IPython.embed()
+#import IPython; IPython.embed()
 for cc, l in zip(np.corrcoef((npss, corr,
                               vp, kr, modulus)),
                  labels):
@@ -62,7 +66,6 @@ for cc, l in zip(np.corrcoef((npss, corr,
         print("\t%0.2f" % (c), end="")
     print("")
 
-print("Done!")
-
+print("--\nDone!")
 
 
