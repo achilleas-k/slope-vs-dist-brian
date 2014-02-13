@@ -3,7 +3,6 @@ from brian import *
 import numpy as np
 import spikerlib as sl
 import itertools as itt
-import matplotlib.pyplot as plt
 
 
 # unit aliases
@@ -87,14 +86,43 @@ netw.run(dura)
 trace_mon.insert_spikes(output_mon, 40*mV)
 
 # plot
-plt.plot(wn_t, wn_kreuz, 'b')
-plt.plot(nw_t, nw_kreuz, 'r')
-plt.plot(rand_t, rand_kreuz, 'k')
-plt.figure()
+figure()
+plot(wn_t, wn_kreuz, 'b')
+plot(nw_t, nw_kreuz, 'r')
+plot(rand_t, rand_kreuz, 'k')
+figure()
 norm_factor = max(rand_kreuz)
-plt.plot(wn_t, wn_kreuz/norm_factor, 'b')
-plt.plot(nw_t, nw_kreuz/norm_factor, 'r')
-plt.plot(rand_t, rand_kreuz/norm_factor, 'k')
-plt.ion()  # for interactive
-plt.show()
+plot(wn_t, wn_kreuz/norm_factor, 'b')
+plot(nw_t, nw_kreuz/norm_factor, 'r')
+plot(rand_t, rand_kreuz/norm_factor, 'k')
+
+# calculate interval kreuz from monitors
+outspikes = output_mon.spiketimes.values()
+wn_inputs = wn_monitor.spiketimes.values()
+nw_inputs = nw_monitor.spiketimes.values()
+rand_inputs = rand_monitor.spiketimes.values()
+
+wn_int_t, wn_int_kreuz = kreuz.interval(wn_inputs,
+                                        insert(outspikes[0], 0, 0), 10)
+wn_int_t = [t for wit in wn_int_t for t in wit]
+wn_int_kreuz = [k for wik in wn_int_kreuz for k in wik]
+
+nw_int_t, nw_int_kreuz = kreuz.interval(nw_inputs,
+                                        insert(outspikes[1], 0, 0), 10)
+nw_int_t = [t for nit in nw_int_t for t in nit]
+nw_int_kreuz = [k for nik in nw_int_kreuz for k in nik]
+
+rand_int_t, rand_int_kreuz = kreuz.interval(rand_inputs,
+                                            insert(outspikes[2], 0, 0), 10)
+rand_int_t = [t for rit in rand_int_t for t in rit]
+rand_int_kreuz = [k for rik in rand_int_kreuz for k in rik]
+
+# plot them
+figure()
+plot(wn_int_t, wn_int_kreuz, 'b')
+plot(nw_int_t, nw_int_kreuz, 'r')
+plot(rand_int_t, rand_int_kreuz, 'k')
+
+ion()  # for interactive
+show()
 
