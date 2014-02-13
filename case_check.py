@@ -4,12 +4,10 @@ import spikerlib as sl
 import itertools as itt
 
 
-
 # unit aliases
 ms = msecond
 Hz = hertz
 mV = mvolt
-
 
 # measure aliases
 victor_purpura = sl.metrics.victor_purpura
