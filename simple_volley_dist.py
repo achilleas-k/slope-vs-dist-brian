@@ -39,13 +39,19 @@ Nin = 50
 packet_sequence = [{"spread": 4.0*ms, "t":  50*ms, "n": Nin},
                    {"spread": 0.1*ms, "t": 100*ms, "n": Nin},
                    {"spread": 0.1*ms, "t": 150*ms, "n": Nin},
-                   {"spread": 6.0*ms, "t": 200*ms, "n": Nin},
+                   {"spread": 4.0*ms, "t": 200*ms, "n": Nin},
                    {"spread": 0.1*ms, "t": 250*ms, "n": Nin},
                    {"spread": 0.1*ms, "t": 300*ms, "n": Nin},
-                   {"spread": 3.0*ms, "t": 350*ms, "n": Nin},
-                   {"spread": 3.0*ms, "t": 400*ms, "n": Nin},
+                   {"spread": 4.0*ms, "t": 350*ms, "n": Nin},
+                   {"spread": 4.0*ms, "t": 400*ms, "n": Nin},
+                   {"spread": 6.0*ms, "t": 450*ms, "n": Nin},
+                   {"spread": 6.0*ms, "t": 500*ms, "n": Nin},
+                   {"spread": 9.0*ms, "t": 550*ms, "n": Nin},
+                   {"spread": 9.0*ms, "t": 600*ms, "n": Nin},
                   ]
-dura = max([ps["t"] for ps in packet_sequence])+100*ms
+ptimes = [ps["t"] for ps in packet_sequence]
+dura = max(ptimes)+100*ms
+sigmas = [ps["spread"] for ps in packet_sequence]
 
 # (input, time) pairs
 input_it_pairs = gen_spikes(packet_sequence)
@@ -107,6 +113,8 @@ raster_plot(input_mon, c='b')
 for out in outspikes[0]:
     plot([out/ms, out/ms], [0, Nin], 'k--', linewidth=3)
 axis(xmin=0, xmax=dura/ms)
+ax2 = twinx()
+ax2.plot(array(ptimes)/ms, sigmas, 'r--')
 
 subplot(212)
 plot(outspikes[0], norm_slopes[0], 'b')
