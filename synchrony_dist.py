@@ -14,6 +14,8 @@ kreuz = sl.metrics.kreuz
 modulus = sl.metrics.modulus_metric
 npss = sl.tools.normalised_pre_spike_slopes
 
+dt = defaultclock.dt
+
 print("Creating NeuronGroup ...")
 netw = Network()
 Vth = 20*mV
@@ -31,46 +33,39 @@ Sin = 0.7
 dura = 1*second
 inrate = 20*Hz
 input_spike_times = []
-for t in arange(0*ms, dura, 0.1*ms):
-    if random() < float(1/inrate):
-        # new event
-        if random() < Sin:
-            # event is synchronous
-            input_spike_times.extend([t]*int(Nin*Sin))
-        else:
-            # event is single spike
-            input_spike_times.append(t)
-# add spike indices
-input_it_pairs = [(idx % Nin, t) for idx, t in enumerate(input_spike_times)]
+
+sync_group, rand_group = sl.tools.gen_input_groups(Nin, inrate, Sin, 0*ms, dura)
 
 # input groups
-input_group = SpikeGeneratorGroup(Nin, input_it_pairs)
-netw.add(input_group)
+netw.add(sync_group, rand_group)
 
 # connections
 print("Setting up connections ...")
 weight = 0.5*mV
-in_con = Connection(input_group, neurons, state='V', weight=weight)
-netw.add(in_con)
+sync_con = Connection(sync_group, neurons, state='V', weight=weight)
+rand_con = Connection(rand_group, neurons, state='V', weight=weight)
+netw.add(sync_con, rand_con)
 
 print("Setting up monitors ...")
 # input monitors
-input_mon = SpikeMonitor(input_group)
-netw.add(input_mon)
+sync_inp_mon = SpikeMonitor(sync_group)
+rand_inp_mon = SpikeMonitor(rand_group)
+netw.add(sync_inp_mon, rand_inp_mon)
 
 # other monitors
 trace_mon = StateMonitor(neurons, 'V', record=True)
 output_mon = SpikeMonitor(neurons)
 netw.add(trace_mon, output_mon)
 
-print("Running ...")
+print("Running for %s simulated time ..." % (dura))
 netw.run(dura)
 trace_mon.insert_spikes(output_mon, 40*mV)
-print("Simulation run finished!")
+print("Simulation run finished! %i spikes fired." % (output_mon.nspikes))
 
 print("Calculating measures ...")
 outspikes = output_mon.spiketimes.values()
-inputspikes = input_mon.spiketimes.values()
+inputspikes = sync_inp_mon.spiketimes.values()
+inputspikes.extend(rand_inp_mon.spiketimes.values())
 
 print("\tKreuz ...")
 # calculate interval kreuz from monitors
@@ -101,11 +96,11 @@ print("Plotting ...")
 # plot them
 figure("Input spikes")
 subplot2grid((5,1), (0, 0), rowspan=4)
-raster_plot(input_mon, c='gray')
+raster_plot(rand_inp_mon, sync_inp_mon, c='gray')
 axis(xmin=0, xmax=dura/ms)
 subplot2grid((5,1), (4, 0))
 for out in outspikes[0]:
-    plot([out/ms, out/ms], [0, Nin], 'k-', linewidth=1.5)
+    plot([out/ms, out/ms], [0, 1], 'k-', linewidth=1.5)
 axis(xmin=0, xmax=dura/ms)
 
 

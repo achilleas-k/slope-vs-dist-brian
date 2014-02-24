@@ -40,19 +40,7 @@ netw.add(neurons)
 
 print("Generating inputs ... ")
 Nin = 50
-packet_sequence = [{"spread": 4.0*ms, "t":  50*ms, "n": Nin},
-                   {"spread": 0.1*ms, "t": 100*ms, "n": Nin},
-                   {"spread": 0.1*ms, "t": 150*ms, "n": Nin},
-                   {"spread": 4.0*ms, "t": 200*ms, "n": Nin},
-                   {"spread": 0.1*ms, "t": 250*ms, "n": Nin},
-                   {"spread": 0.1*ms, "t": 300*ms, "n": Nin},
-                   {"spread": 4.0*ms, "t": 350*ms, "n": Nin},
-                   {"spread": 4.0*ms, "t": 400*ms, "n": Nin},
-                   {"spread": 6.0*ms, "t": 450*ms, "n": Nin},
-                   {"spread": 6.0*ms, "t": 500*ms, "n": Nin},
-                   {"spread": 9.0*ms, "t": 550*ms, "n": Nin},
-                   {"spread": 9.0*ms, "t": 600*ms, "n": Nin},
-                  ]
+# a few hand-made packets (t will be filled in automatically)
 packet_sequence = [{"spread": 4.0*ms, "t": 0*ms, "n": Nin},
                    {"spread": 0.1*ms, "t": 0*ms, "n": Nin},
                    {"spread": 0.1*ms, "t": 0*ms, "n": Nin},
@@ -84,9 +72,15 @@ packet_times = [idx*inter_packet_interval+50*ms
                 for idx in range(0, len(packet_sequence), 1)]
 for ps, pt in zip(packet_sequence, packet_times):
     ps["t"] = pt
-for spr in random(10):
+for spr in random(100):
+    # some packets with random spread
     new_t = packet_sequence[-1]["t"]+inter_packet_interval
     new_spr = spr*10*ms
+    packet_sequence.append({"spread": new_spr, "t": new_t, "n": Nin})
+for idx in range(20):
+    # a few packets with fixed spread
+    new_t = packet_sequence[-1]["t"]+inter_packet_interval
+    new_spr = 2*ms
     packet_sequence.append({"spread": new_spr, "t": new_t, "n": Nin})
 ptimes = [ps["t"] for ps in packet_sequence]
 dura = max(ptimes)+100*ms
@@ -115,10 +109,10 @@ trace_mon = StateMonitor(neurons, 'V', record=True)
 output_mon = SpikeMonitor(neurons)
 netw.add(trace_mon, output_mon)
 
-print("Running ...")
+print("Running for %s simulated time ..." % (dura))
 netw.run(dura)
 trace_mon.insert_spikes(output_mon, 40*mV)
-print("Simulation run finished!")
+print("Simulation run finished! %i spikes fired." % (output_mon.nspikes))
 
 print("Calculating measures ...")
 outspikes = output_mon.spiketimes.values()

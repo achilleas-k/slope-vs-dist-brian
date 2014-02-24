@@ -6,11 +6,13 @@ from matplotlib.pyplot import scatter, xlabel, ylabel, savefig, clf
 
 
 measure_npz = np.load(sys.argv[1])
-nitems = len(measure_npz.keys())
+config_npz = np.load(sys.argv[2])
+configs = config_npz["data"]
 npss = []
 modulus = []
 vp = []
 kr = []
+Sin = []
 for k, v in measure_npz.iteritems():
     v = v.item()  # this again
     if np.any(np.isnan(v["npss"])):
@@ -19,6 +21,10 @@ for k, v in measure_npz.iteritems():
     modulus.append(v["modulus"][0])
     vp.append(v["vp"][0])
     kr.append(v["kreuz"][0])
+    for c in configs:
+        if str(c["id"]) == k:
+            Sin.append(c["S_in"])
+            break
 
 try:
     os.mkdir("plots")
