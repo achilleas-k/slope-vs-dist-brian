@@ -100,4 +100,3 @@ axis(xmin=0, xmax=xmax)
 legend()
 show()
 
-
