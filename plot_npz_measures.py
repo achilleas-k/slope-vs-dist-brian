@@ -55,7 +55,7 @@ xticks(xt, xt, size=textsize)
 yticks(yt_pos, [])
 axis(ymin=0, ymax=max(npss))
 
-subplots_adjust(left=0.15, right=0.9, top=0.95, bottom=0.2, wspace=0.1)
+subplots_adjust(left=0.15, right=0.9, top=0.95, bottom=0.18, wspace=0.1)
 for ext in imgtypes:
     savefig("plots/npss_comparison.%s" % ext)
     print("Plotted npss_comparison.%s" % ext)
