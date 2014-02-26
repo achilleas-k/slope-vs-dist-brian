@@ -84,6 +84,7 @@ for idx in range(20):
     packet_sequence.append({"spread": new_spr, "t": new_t, "n": Nin})
 ptimes = [ps["t"] for ps in packet_sequence]
 dura = max(ptimes)+100*ms
+dura = 2*second
 sigmas = [ps["spread"] for ps in packet_sequence]
 
 # (input, time) pairs
@@ -148,13 +149,13 @@ print("Plotting ...")
 figure("Input spikes")
 subplot2grid((5,1), (0, 0), rowspan=4)
 raster_plot(input_mon, c='gray')
-axis(xmin=0, xmax=dura/ms)
 ax2 = twinx()
-ax2.plot(array(ptimes)/ms, sigmas, color='black', linestyle='--', linewidth=1.5)
+ax2.plot(array(ptimes)/ms, sigmas, color='black', linestyle='--', linewidth=1.0)
 subplot2grid((5,1), (4, 0))
 for out in outspikes[0]:
-    plot([out/ms, out/ms], [0, Nin], 'k-', linewidth=1.5)
+    plot([out/ms, out/ms], [0, Nin], 'k-', linewidth=1.0)
 axis(xmin=0, xmax=dura/ms)
+ax2.axis(xmin=0, xmax=dura/ms)
 
 
 figure("Traces")
@@ -165,51 +166,83 @@ xlabel("$t$ (sec)")
 ylabel("$V$ (volt)")
 
 
-figure("Measures")
+figure("Measures", figsize=(14.4, 9), dpi=100)
+textsize = 20
 interval_midpoints = (outspikes[0]-diff(insert(outspikes[0], 0, 0))/2)*1000
 subplot(511)
 #title("Packet widths")
 plot(multiply(ptimes, 1000), multiply(sigmas, 1000), 'k')
-ylabel("$\sigma$ (ms)")
+ylabel("$\sigma$ (ms)", size=textsize)
 spike_height = max(sigmas)*1000
 for out in outspikes[0]:
-    plot([out/ms, out/ms], [0, spike_height], color="gray", linestyle="--", linewidth=1.5)
-axis(xmin=0*second, xmax=dura*1000)
-subplot(512)
-#title("NPSS")
-plot(interval_midpoints, norm_slopes[0], 'b')
-ylabel("$NPSS$")
-spike_height = max(norm_slopes[0])
-for out in outspikes[0]:
-    plot([out/ms, out/ms], [0, spike_height], color="gray", linestyle="--", linewidth=1.5)
-axis(xmin=0*second, xmax=dura*1000)
-subplot(513)
-#title("Kreuz")
-plot(interval_midpoints, kreuz_d, 'r')
-ylabel("$D_{V}$")
-spike_height = max(kreuz_d)
-for out in outspikes[0]:
-    plot([out/ms, out/ms], [0, spike_height], color="gray", linestyle="--", linewidth=1.5)
-axis(xmin=0*second, xmax=dura*1000)
-subplot(514)
-#title("Victor-Purpura")
-plot(interval_midpoints, vp_d, 'g')
-ylabel("$D_{S}$")
-spike_height = max(vp_d)
-for out in outspikes[0]:
-    plot([out/ms, out/ms], [0, spike_height], color="gray", linestyle="--", linewidth=1.5)
-axis(xmin=0*second, xmax=dura*1000)
-subplot(515)
-#title("Modulus")
-plot(interval_midpoints, modm, 'm')
-spike_height = max(modm)
-ylabel("$D_{m}$")
-xlabel("$t$ (ms)")
-for out in outspikes[0]:
-    plot([out/ms, out/ms], [0, spike_height], color="gray", linestyle="--", linewidth=1.5)
+    plot([out/ms, out/ms], [0, spike_height], color="gray", linestyle="--", linewidth=1.0)
+xt, _ = xticks()
+xticks(xt, [])
+ylocs, ylabels = yticks()
+ylocs = [ylocs[0], median(ylocs), ylocs[-1]]
+yticks(ylocs, ylocs, size=textsize)
 axis(xmin=0*second, xmax=dura*1000)
 
-ion()  # for interactive
+subplot(512)
+#title("NPSS")
+plot(interval_midpoints, norm_slopes[0], 'k')
+ylabel("$NPSS$", size=textsize)
+spike_height = max(norm_slopes[0])
+for out in outspikes[0]:
+    plot([out/ms, out/ms], [0, spike_height], color="gray", linestyle="--", linewidth=1.0)
+xt, _ = xticks()
+xticks(xt, [])
+ylocs, ylabels = yticks()
+ylocs = [ylocs[0], median(ylocs), ylocs[-1]]
+yticks(ylocs, ylocs, size=textsize)
+axis(xmin=0*second, xmax=dura*1000)
+
+subplot(513)
+#title("Kreuz")
+plot(interval_midpoints, kreuz_d, 'k')
+ylabel("$D_{S}$", size=textsize)
+spike_height = max(kreuz_d)
+for out in outspikes[0]:
+    plot([out/ms, out/ms], [0, spike_height], color="gray", linestyle="--", linewidth=1.0)
+xt, _ = xticks()
+xticks(xt, [])
+ylocs, ylabels = yticks()
+ylocs = [ylocs[0], median(ylocs), ylocs[-1]]
+yticks(ylocs, ylocs, size=textsize)
+axis(xmin=0*second, xmax=dura*1000)
+
+subplot(514)
+#title("Victor-Purpura")
+plot(interval_midpoints, vp_d, 'k')
+ylabel("$D_{V}$", size=textsize)
+spike_height = max(vp_d)
+for out in outspikes[0]:
+    plot([out/ms, out/ms], [0, spike_height], color="gray", linestyle="--", linewidth=1.0)
+xt, _ = xticks()
+xticks(xt, [])
+ylocs, ylabels = yticks()
+ylocs = [ylocs[0], median(ylocs), ylocs[-1]]
+yticks(ylocs, ylocs, size=textsize)
+axis(xmin=0*second, xmax=dura*1000)
+
+subplot(515)
+#title("Modulus")
+plot(interval_midpoints, modm, 'k')
+spike_height = max(modm)
+ylabel("$D_{m}$", size=textsize)
+xlabel("$t$ (ms)", size=textsize)
+for out in outspikes[0]:
+    plot([out/ms, out/ms], [0, spike_height], color="gray", linestyle="--", linewidth=1.0)
+xticks(size=textsize)
+ylocs, ylabels = yticks()
+ylocs = [ylocs[0], median(ylocs), ylocs[-1]]
+yticks(ylocs, ylocs, size=textsize)
+axis(xmin=0*second, xmax=dura*1000)
+
+subplots_adjust(left=0.15, right=0.9, top=0.95, bottom=0.10, hspace=0.5)
+savefig("plots/measures.eps")
+
+ion()  # assumed dropping to interactive on finish
 show()
 
 print("DONE!")
