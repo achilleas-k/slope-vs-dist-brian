@@ -3,6 +3,15 @@ from brian import *
 import spikerlib as sl
 
 
+def label_loc(axlims):
+    xmin, xmax, ymin, ymax = axlims
+    xrng = xmax-xmin
+    yrng = ymax-ymin
+    text_x = xmin-0.15*xrng
+    text_y = ymax+0.1*yrng
+    return text_x, text_y
+
+
 def gen_spikes(packet_seq):
     spikes = []
     for packet in packet_seq:
@@ -83,7 +92,7 @@ for idx in range(20):
     new_spr = 2*ms
     packet_sequence.append({"spread": new_spr, "t": new_t, "n": Nin})
 ptimes = [ps["t"] for ps in packet_sequence]
-dura = max(ptimes)+100*ms
+# dura = max(ptimes)+100*ms
 dura = 2*second
 sigmas = [ps["spread"] for ps in packet_sequence]
 
@@ -157,7 +166,6 @@ for out in outspikes[0]:
 axis(xmin=0, xmax=dura/ms)
 ax2.axis(xmin=0, xmax=dura/ms)
 
-
 figure("Traces")
 colours = ['b', 'r', 'g']
 plot(trace_mon.times, trace_mon[0], colours[0])
@@ -182,6 +190,8 @@ ylocs, ylabels = yticks()
 ylocs = [ylocs[0], median(ylocs), ylocs[-1]]
 yticks(ylocs, ylocs, size=textsize)
 axis(xmin=0*second, xmax=dura*1000)
+text_x, text_y = label_loc(axis())
+text(text_x, text_y, "(d)", size=textsize)
 
 subplot(512)
 #title("NPSS")
@@ -196,6 +206,8 @@ ylocs, ylabels = yticks()
 ylocs = [ylocs[0], median(ylocs), ylocs[-1]]
 yticks(ylocs, ylocs, size=textsize)
 axis(xmin=0*second, xmax=dura*1000)
+text_x, text_y = label_loc(axis())
+text(text_x, text_y, "(e)", size=textsize)
 
 subplot(513)
 #title("Kreuz")
@@ -210,6 +222,8 @@ ylocs, ylabels = yticks()
 ylocs = [ylocs[0], median(ylocs), ylocs[-1]]
 yticks(ylocs, ylocs, size=textsize)
 axis(xmin=0*second, xmax=dura*1000)
+text_x, text_y = label_loc(axis())
+text(text_x, text_y, "(f)", size=textsize)
 
 subplot(514)
 #title("Victor-Purpura")
@@ -224,6 +238,8 @@ ylocs, ylabels = yticks()
 ylocs = [ylocs[0], median(ylocs), ylocs[-1]]
 yticks(ylocs, ylocs, size=textsize)
 axis(xmin=0*second, xmax=dura*1000)
+text_x, text_y = label_loc(axis())
+text(text_x, text_y, "(g)", size=textsize)
 
 subplot(515)
 #title("Modulus")
@@ -236,8 +252,12 @@ for out in outspikes[0]:
 xticks(size=textsize)
 ylocs, ylabels = yticks()
 ylocs = [ylocs[0], median(ylocs), ylocs[-1]]
-yticks(ylocs, ylocs, size=textsize)
+ytxt = ["%.e" % yl for yl in ylocs]  # small numbers - sci. notation
+ytxt[0] = "0"
+yticks(ylocs, ytxt, size=textsize)
 axis(xmin=0*second, xmax=dura*1000)
+text_x, text_y = label_loc(axis())
+text(text_x, text_y, "(h)", size=textsize)
 
 subplots_adjust(left=0.15, right=0.9, top=0.95, bottom=0.10, hspace=0.5)
 savefig("plots/measures.eps")

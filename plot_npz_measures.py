@@ -3,8 +3,16 @@ import os
 import sys
 import numpy as np
 from matplotlib.pyplot import (scatter, xlabel, ylabel, savefig, clf, figure,
-                               yticks, xticks, axis, subplot, subplots_adjust)
+                               yticks, xticks, axis, subplot, subplots_adjust,
+                               text)
 
+def label_loc(axlims):
+    xmin, xmax, ymin, ymax = axlims
+    xrng = xmax-xmin
+    yrng = ymax-ymin
+    text_x = xmin-0.1*xrng
+    text_y = ymax+0.1*yrng
+    return text_x, text_y
 
 measure_npz = np.load(sys.argv[1])
 npss = []
@@ -30,7 +38,7 @@ imgtypes = ["eps", "png", "pdf"]
 textsize = 20
 
 yt_pos = [0, max(npss)/2, max(npss)]
-figure("comparison", figsize=(14,4), dpi=100)
+figure("comparison", figsize=(14,4.5), dpi=100)
 subplot(131)
 scatter(vp, npss, c='k')
 ylabel("NPSS", size=textsize); xlabel("$D_V$", size=textsize)
@@ -38,6 +46,8 @@ xt = [0, round(max(vp))/2, round(max(vp))]
 xticks(xt, xt, size=textsize)
 yticks(yt_pos, yt_pos, size=textsize)
 axis(ymin=0, ymax=max(npss))
+text_x, text_y = label_loc(axis())
+text(text_x, text_y, "(a)", size=textsize)
 
 subplot(132)
 scatter(kr, npss, c='k')
@@ -46,6 +56,8 @@ xt = [0, 0.07, 0.13]  # set by hand
 xticks(xt, xt, size=textsize)
 yticks(yt_pos, [])
 axis(ymin=0, ymax=max(npss))
+text_x, text_y = label_loc(axis())
+text(text_x, text_y, "(b)", size=textsize)
 
 subplot(133)
 scatter(modulus, npss, c='k')
@@ -54,8 +66,10 @@ xt = [0, 0.15, 0.3]
 xticks(xt, xt, size=textsize)
 yticks(yt_pos, [])
 axis(ymin=0, ymax=max(npss))
+text_x, text_y = label_loc(axis())
+text(text_x, text_y, "(c)", size=textsize)
 
-subplots_adjust(left=0.15, right=0.9, top=0.95, bottom=0.18, wspace=0.1)
+subplots_adjust(left=0.15, right=0.9, top=0.85, bottom=0.18, wspace=0.15)
 for ext in imgtypes:
     savefig("plots/npss_comparison.%s" % ext)
     print("Plotted npss_comparison.%s" % ext)
