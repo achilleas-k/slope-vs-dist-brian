@@ -176,7 +176,8 @@ ylabel("$V$ (volt)")
 
 figure("Measures", figsize=(14.4, 9), dpi=100)
 textsize = 20
-interval_midpoints = (outspikes[0]-diff(insert(outspikes[0], 0, 0))/2)*1000
+#interval_midpoints = (outspikes[0]-diff(insert(outspikes[0], 0, 0))/2)*1000
+interval_midpoints = outspikes[0]*1000
 subplot(511)
 #title("Packet widths")
 plot(multiply(ptimes, 1000), multiply(sigmas, 1000), 'k')
@@ -184,6 +185,9 @@ ylabel("$\sigma$ (ms)", size=textsize)
 spike_height = max(sigmas)*1000
 for out in outspikes[0]:
     plot([out/ms, out/ms], [0, spike_height], color="gray", linestyle="--", linewidth=1.0)
+#for _idx, inp in input_mon.spiketimes.iteritems():
+#    scatter(inp*1000, zeros_like(inp)+spike_height*_idx/Nin, c='grey',
+#            s=5)
 xt, _ = xticks()
 xticks(xt, [])
 ylocs, ylabels = yticks()
@@ -266,6 +270,4 @@ ion()  # assumed dropping to interactive on finish
 show()
 
 print("DONE!")
-
-
 
