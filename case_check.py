@@ -4,7 +4,7 @@ import spikerlib as sl
 import itertools as itt
 
 
-# unit aliases
+# unit aliases (why do I need these???)
 ms = msecond
 Hz = hertz
 mV = mvolt
@@ -13,7 +13,7 @@ mV = mvolt
 victor_purpura = sl.metrics.victor_purpura
 kreuz = sl.metrics.kreuz
 modulus = sl.metrics.modulus_metric
-npss = sl.tools.normalised_pre_spike_slopes
+npss = sl.tools.npss
 
 netw = Network()
 Vth = 20*mV
