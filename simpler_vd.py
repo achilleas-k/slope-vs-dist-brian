@@ -99,7 +99,7 @@ plt.figure()
 plt.title("All measures")
 plt.plot(spikemon[0], npss, label="NPSS")
 plt.plot(krint[0], krint[1], label="Kreuz")
-plt.plot(spikemon[0], vpdist, label="VP")
+plt.plot(spikemon[0][1:], vpdist, label="VP")
 plt.legend()
 
 plt.figure()
