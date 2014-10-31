@@ -83,7 +83,7 @@ print("Calculating pairwise Kreuz distance (interval mode) ...")
 krint = sl.metrics.kreuz.interval(input_spiketrains, spikemon[0], mp=True)
 print("Calculating pairwise VP distance (interval mode) ...")
 vpdist = sl.metrics.victor_purpura.interval(input_spiketrains, spikemon[0],
-                                            1/(2*ms))
+                                            float(1/(2*ms)))
 
 print("Reticulating splines ...")
 dt = brian.defaultclock.dt
