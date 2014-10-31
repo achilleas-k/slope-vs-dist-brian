@@ -86,6 +86,7 @@ vpdist = sl.metrics.victor_purpura.interval(input_spiketrains, spikemon[0],
                                             float(1/(2*ms)))
 
 print("Reticulating splines ...")
+plt.ion()
 dt = brian.defaultclock.dt
 winstarts = spikemon[0]-(2*ms)
 winstarts_idx = (winstarts/dt).astype('int')
@@ -117,7 +118,3 @@ plt.title("Integrals")
 plt.plot(spikemon[0], integrals, label="Integral")
 plt.plot(spikemon[0], scintegrals, label="Scaled intgrl")
 plt.legend()
-
-plt.ion()
-plt.show()
-
