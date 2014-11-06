@@ -72,13 +72,11 @@ for _ in range(N):
     spiketrains.append(np.sort(newst))
 
 print("Calculating stuff ...")
-avgbiv = sl.metrics.kreuz.pairwise(spiketrains, start, end, 2000)
-avgbiv_mp = sl.metrics.kreuz.pairwise_mp(spiketrains, start, end, 2000)
+avgbiv = sl.metrics.kreuz.pairwise_mp(spiketrains, start, end, 2000)
 multiv = sl.metrics.kreuz.multivariate(spiketrains, start, end, 2000)
 
 print("Drawing plots ...")
 draw_the_plots(N, spiketrains, avgbiv, multiv)
 plt.subplot(3,1,2)
-plt.plot(avgbiv_mp[0], avgbiv_mp[1])
 
 plt.show()
