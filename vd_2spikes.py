@@ -34,7 +34,7 @@ weight = 0.012
 print("Creating inputs ...")
 n_input_trains = 2
 spiketrain_one = np.arange(0.001, 2, 0.1)
-spiketrain_two = spiketrain_one-np.linspace(0, 0.07, len(spiketrain_one))
+spiketrain_two = spiketrain_one-np.linspace(0, 0.09, len(spiketrain_one))
 input_spiketrains = [spiketrain_one, spiketrain_two]
 output_spiketrain = spiketrain_one[:]
 print("Calculating V(w_s) ...")
@@ -42,9 +42,15 @@ vws = calc_Vws(input_spiketrains, output_spiketrain, w, weight, tau)
 npss = vws  # temporary
 print("Calculating pairwise Kreuz distance (interval mode) ...")
 krt, krdist = sl.metrics.kreuz.interval(input_spiketrains, output_spiketrain,
-                                  samples=500, mp=True)
+                                        samples=500, mp=True)
 krdist = [np.trapz(kr, t) for t, kr in zip(krt, krdist)]
 krt = [t[-1] for t in krt]
+mkrt, mkrdist = sl.metrics.kreuz.interval_multivariate(input_spiketrains,
+                                                       output_spiketrain,
+                                                       samples=500)
+mkrdist = [np.trapz(kr, t) for t, kr in zip(mkrt, mkrdist)]
+mkrt = [t[-1] for t in mkrt]
+
 
 print("Reticulating splines ...")
 plt.ion()
