@@ -31,6 +31,20 @@ def scaled_integral(membrane, spiketrain, dt=0.0001):
         integrals.append(np.sum(membrane[pre_dt:cur_dt]*scaling))
     return integrals
 
+def calc_Vws(input_spikes, output_monitor, w, DV, tau):
+    t0 = 0*ms
+    Vws = []
+    for outspk in output_monitor[0]:
+        outspk = outspk*second
+        interval_inputs = []
+        for spiketrain in input_spikes:
+            interval_inputs.extend([ti for ti in spiketrain
+                                    if (t0 <= ti) and (ti <= outspk-w)])
+        cur_vws = sum([float(DV*np.exp(-(outspk-w-ii)/tau)) for ii in interval_inputs])
+        Vws.append(cur_vws)
+        t0 = outspk
+    return Vws
+
 
 duration = 5*second
 print("Creating NeuronGroup ...")
