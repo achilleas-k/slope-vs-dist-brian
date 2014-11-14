@@ -9,7 +9,7 @@ def call_mulitvar_kr(record):
     id = record["id"]
     inspikes = record["inspikes"]
     start, end = 0, max([max(insp) for insp in inspikes])
-    samples = end*0.001  # 1 sample per millisecond
+    samples = int(end/0.001)  # 1 sample per millisecond
     dist_kr = kr.multivariate(inspikes, start, end, samples)
     return {"id": id, "kr": dist_kr}
 
