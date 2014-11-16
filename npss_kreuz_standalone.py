@@ -81,7 +81,7 @@ if __name__=='__main__':
     today = datetime.now()
     today_str = "{}{}{}".format(today.year, today.month, today.day)
     data = DataManager(today_str)
-    num_sims = 2
+    num_sims = 200
     num_inputs = 50+randint(150, size=num_sims)  # 50, 200
     input_frequencies = 10+np.round(90*random(num_sims), 0)  # 10, 100
     input_weights = np.round(5e-4*random(num_sims)+1e-4, 5)  # 1e-4, 5e-4
