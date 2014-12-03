@@ -21,22 +21,36 @@ results_nj = data_nojitter["results"]
 configs_j = data_jitter["configs"]
 results_j = data_jitter["results"]
 
-### All data points
+fig = plt.figure("NPSS vs SPIKE-distance", dpi=100, figsize=(8,6))
 mnpss = np.append(get_mnpss(results_nj), get_mnpss(results_j))
 kreuz = np.append(get_kreuz(results_nj), get_kreuz(results_j))
 jitters = np.append(get_param(configs_nj, "sigma"),
                     get_param(configs_j, "sigma"))
-fig = plt.figure("All data points", dpi=100, figsize=(8,6))
-plt.scatter(mnpss, kreuz, c=jitters)
-cbar = plt.colorbar()
-plt.xlabel("NPSS $\bar{M}$")
-plt.ylabel("SPIKE-distance $D_S$")
+### All data points
+plt.subplot2grid((11,11), (0,0), rowspan=4, colspan=10)
+allpts = plt.scatter(mnpss, kreuz, c=jitters*1000)
+plt.xlabel(r"$\bar{M}$")
+plt.ylabel(r"$D_S$")
 plt.axis(xmin=0, xmax=1, ymin=0)
-plt.show()
 
 ### Split jitter from no-jitter
 njidx = jitters == 0
-fig = plt.figure("No jitter", dpi=100, figsize=(8,3))
+plt.subplot2grid((11,11), (6,0), rowspan=4, colspan=4)
+njpts = plt.scatter(mnpss[njidx], kreuz[njidx], c=jitters[njidx]*1000)
+plt.xlabel(r"$\bar{M}$")
+plt.ylabel(r"$D_S$")
+plt.axis(xmin=0, xmax=1, ymin=0)
+
 pjidx = jitters > 0
+plt.subplot2grid((11,11), (6,6), rowspan=4, colspan=4)
+plt.scatter(mnpss[pjidx], kreuz[pjidx], c=jitters[pjidx]*1000)
+plt.xlabel(r"$\bar{M}$")
+plt.ylabel(r"$D_S$")
+plt.axis(xmin=0, xmax=1, ymin=0)
 
+cax = fig.add_axes([0.9, 0.15, 0.03, 0.75])
+cbar = plt.colorbar(cax=cax)
+cbar.set_label(r"$\sigma_{in}$")
 
+plt.subplots_adjust(wspace=0.2, hspace=0.2)
+plt.savefig("npss_v_dist.eps")
