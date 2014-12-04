@@ -97,21 +97,23 @@ if __name__=='__main__':
     results = []
     configs = []
     for npz in npzfiles:
-        print("Adding {}..." % (npz))
+        print("Adding {}...".format(npz))
         data = np.load(npz)
         conf = data['config'].item()
         resu = data['results'].item()
         newconf = {}
         for k in conf:
             newconf[k] = conf[k]
+        newresu = {}
         for k in resu:
             newresu[k] = resu[k]
         configs.append(newconf)
         results.append(newresu)
-    np.savez(today_str+".npz",
+    os.makedirs("collectedresults")
+    np.savez("collectedresults/"+today_str+".npz",
              configs=configs,
              results=results)
-    print("npz files stored in {}.npz")
+    print("npz files stored in collectedrsults/{}.npz".format(today_str))
     print("DONE!")
 
 
