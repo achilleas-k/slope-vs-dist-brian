@@ -24,6 +24,10 @@ def cf5(x, a, b, c, d, e):
 def cf9(x, a, b, c, d, e, f, g, h, i):
     return np.polyval([a, b, c, d, e, f, g, h, i], x)
 
+def calcerrors(x, y, coef):
+    target = np.polyval(coef, x)
+    return abs(target-y)
+
 plt.rcParams['image.cmap'] = 'gray'
 
 print("Loading data...")
@@ -47,7 +51,7 @@ kreuz = kreuz[sorted_idx]
 jitters = jitters[sorted_idx]
 
 print("Fitting curves...")
-curvefunc = cf9
+curvefunc = cf5
 popt, pcov = curve_fit(curvefunc, mnpss, kreuz)
 curvepts = curvefunc(mnpss, *popt)
 
@@ -95,7 +99,7 @@ plt.axis(xmin=0, xmax=1, ymin=0)
 
 cax = fig.add_axes([0.9, 0.15, 0.03, 0.75])
 cbar = plt.colorbar(cax=cax)
-cbar.set_label(r"$\sigma_{in}$")
+cbar.set_label(r"$\sigma_{in} (ms)$")
 
 plt.subplots_adjust(wspace=0.2, hspace=0.2)
 plt.savefig("npss_v_dist.pdf")
@@ -103,4 +107,14 @@ plt.savefig("npss_v_dist.png")
 
 print("Fitted curve coefficients: {}".format(", ".join(str(p) for p in popt)))
 
-
+print("Calculating deviations...")
+njerrors = calcerrors(mnpss[njidx], kreuz[njidx], popt)
+pjerrors = calcerrors(mnpss[pjidx], kreuz[pjidx], popt)
+plt.figure("Deviations")
+plt.scatter(jitters[pjidx]*1000, pjerrors, c=mnpss[pjidx])
+cbar = plt.colorbar()
+cbar.set_label(r"$S_{in}$")
+plt.xlabel(r"$\sigma_{in} (ms)$")
+plt.ylabel("Abs. error")
+plt.savefig("deviations.pdf")
+plt.savefig("deviations.png")
