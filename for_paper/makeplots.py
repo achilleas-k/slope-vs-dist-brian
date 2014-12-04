@@ -71,8 +71,8 @@ plt.axis(xmin=0, xmax=1, ymin=0)
 ### Split jitter from no-jitter
 plt.subplot2grid((11,11), (6,0), rowspan=4, colspan=4)
 njpts = plt.scatter(mnpss[njidx], kreuz[njidx], c=jitters[njidx]*1000)
-plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
-plt.plot(mnpss[njidx], njcurvepts, color="magenta", linestyle="-",
+plt.plot(mnpss, curvepts, color="grey", linestyle="-", linewidth=5, alpha=0.5)
+plt.plot(mnpss[njidx], njcurvepts, color="black", linestyle="-",
          linewidth=3, alpha=0.6)
 plt.xlabel(r"$\overline{M}$")
 plt.ylabel(r"$D_S$")
@@ -80,8 +80,8 @@ plt.axis(xmin=0, xmax=1, ymin=0)
 
 plt.subplot2grid((11,11), (6,6), rowspan=4, colspan=4)
 plt.scatter(mnpss[pjidx], kreuz[pjidx], c=jitters[pjidx]*1000)
-plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
-plt.plot(mnpss[pjidx], pjcurvepts, color="magenta", linestyle="-",
+plt.plot(mnpss, curvepts, color="grey", linestyle="-", linewidth=5, alpha=0.5)
+plt.plot(mnpss[pjidx], pjcurvepts, color="black", linestyle="-",
          linewidth=3, alpha=0.6)
 plt.xlabel(r"$\overline{M}$")
 plt.ylabel(r"$D_S$")
