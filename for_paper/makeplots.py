@@ -56,7 +56,10 @@ pjidx = jitters > 0
 poptpj, pcov = curve_fit(curvefunc, mnpss[pjidx], kreuz[pjidx])
 pjcurvepts = curvefunc(mnpss[pjidx], *poptpj)
 
-
+print("Number of items")
+print("Without jitter: {}".format(np.count_nonzero(njidx)))
+print("With jitter:    {}".format(np.count_nonzero(pjidx)))
+print("Total:          {}".format(len(mnpss)))
 
 print("Making plots...")
 fig = plt.figure("NPSS vs SPIKE-distance", dpi=100, figsize=(8,6))
