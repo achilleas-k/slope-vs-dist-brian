@@ -1,15 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from glob import glob
 
 def get_mnpss(results):
-    return np.array([np.mean(r["npss"]) for r in results])
+    return [np.mean(r["npss"]) for r in results]
 
 def get_kreuz(results):
-    return np.array([np.trapz(r["kr_dists"], r["kr_times"]) for r in results])
+    return [np.trapz(r["kr_dists"], r["kr_times"]) for r in results]
 
 def get_param(configs, paramkey):
-    return np.array([c[paramkey] for c in configs])
+    return [c[paramkey] for c in configs]
 
 def cf3(x, a, b, c):
     return np.polyval([a, b, c], x)
@@ -26,18 +27,20 @@ def cf9(x, a, b, c, d, e, f, g, h, i):
 plt.rcParams['image.cmap'] = 'gray'
 
 print("Loading data...")
-data_nojitter = np.load("../2014-11-16-npz-nojitter/results.npz")
-data_jitter = np.load("../2014-11-17-npz/results.npz")
-
-configs_nj = data_nojitter["configs"]
-results_nj = data_nojitter["results"]
-configs_j = data_jitter["configs"]
-results_j = data_jitter["results"]
-mnpss = np.append(get_mnpss(results_nj), get_mnpss(results_j))
-kreuz = np.append(get_kreuz(results_nj), get_kreuz(results_j))
-jitters = np.append(get_param(configs_nj, "sigma"),
-                    get_param(configs_j, "sigma"))
-
+mnpss = []
+kreuz = []
+jitters = []
+for npzfile in glob("../npzfiles/*.npz"):
+    print("Reading {}".format(npzfile))
+    data = np.load(npzfile)
+    configs = data["configs"]
+    results = data["results"]
+    mnpss.extend(get_mnpss(results))
+    kreuz.extend(get_kreuz(results))
+    jitters.extend(get_param(configs, "sigma"))
+mnpss = np.array(mnpss)
+kreuz = np.array(kreuz)
+jitters = np.array(jitters)
 sorted_idx = np.argsort(mnpss)
 mnpss = mnpss[sorted_idx]
 kreuz = kreuz[sorted_idx]
