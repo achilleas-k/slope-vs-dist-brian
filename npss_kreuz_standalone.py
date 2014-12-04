@@ -11,7 +11,7 @@ import spikerlib as sl
 import gc
 from time import time
 import os
-import zipfile
+from glob import glob
 from datetime import datetime
 
 defaultclock.dt = dt = 0.1*ms
@@ -93,12 +93,25 @@ if __name__=='__main__':
     run_tasks(data, lifsim, params, gui=False, poolsize=0,
               numitems=num_sims)
     print("Simulations done!\nGathering npz files ...")
-    zf = zipfile.ZipFile("results.zip", mode="w")
-    for filename in os.listdir("."):
-        if filename.endswith("npz"):
-            print("Adding %s to zipfile ..." % (filename))
-            zf.write(filename)
-    print("npz files stored in results.zip")
+    npzfiles = glob("*.npz")
+    results = []
+    configs = []
+    for npz in npzfiles:
+        print("Adding {}..." % (npz))
+        data = np.load(npz)
+        conf = data['config'].item()
+        resu = data['results'].item()
+        newconf = {}
+        for k in conf:
+            newconf[k] = conf[k]
+        for k in resu:
+            newresu[k] = resu[k]
+        configs.append(newconf)
+        results.append(newresu)
+    np.savez(today_str+".npz",
+             configs=configs,
+             results=results)
+    print("npz files stored in {}.npz")
     print("DONE!")
 
 
