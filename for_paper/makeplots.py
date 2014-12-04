@@ -33,7 +33,11 @@ plt.rcParams['image.cmap'] = 'gray'
 print("Loading data...")
 mnpss = []
 kreuz = []
+synchs = []
 jitters = []
+inrates = []
+numin = []
+weights = []
 for npzfile in glob("../npzfiles/*.npz"):
     print("Reading {}".format(npzfile))
     data = np.load(npzfile)
@@ -41,10 +45,19 @@ for npzfile in glob("../npzfiles/*.npz"):
     results = data["results"]
     mnpss.extend(get_mnpss(results))
     kreuz.extend(get_kreuz(results))
+    synchs.extend(get_param(configs, "S_in"))
     jitters.extend(get_param(configs, "sigma"))
+    inrates.extend(get_param(configs, "f_in"))
+    numin.extend(get_param(configs, "N_in"))
+    weights.extend(get_param(configs, "weight"))
 mnpss = np.array(mnpss)
 kreuz = np.array(kreuz)
+synchs = np.array(synchs)
 jitters = np.array(jitters)
+inrates = np.array(inrates)
+numin = np.array(numin)
+weights = np.array(weights)
+
 sorted_idx = np.argsort(mnpss)
 mnpss = mnpss[sorted_idx]
 kreuz = kreuz[sorted_idx]
@@ -99,7 +112,7 @@ plt.axis(xmin=0, xmax=1, ymin=0)
 
 cax = fig.add_axes([0.9, 0.15, 0.03, 0.75])
 cbar = plt.colorbar(cax=cax)
-cbar.set_label(r"$\sigma_{in} (ms)$")
+cbar.set_label(r"$\sigma_{in}$ (ms)")
 
 plt.subplots_adjust(wspace=0.2, hspace=0.2)
 plt.savefig("npss_v_dist.pdf")
@@ -111,10 +124,10 @@ print("Calculating deviations...")
 njerrors = calcerrors(mnpss[njidx], kreuz[njidx], popt)
 pjerrors = calcerrors(mnpss[pjidx], kreuz[pjidx], popt)
 plt.figure("Deviations")
-plt.scatter(jitters[pjidx]*1000, pjerrors, c=mnpss[pjidx])
-cbar = plt.colorbar()
-cbar.set_label(r"$S_{in}$")
-plt.xlabel(r"$\sigma_{in} (ms)$")
+plt.scatter(synchs[pjidx], pjerrors)
+#cbar = plt.colorbar()
+#cbar.set_label(r"$S_{in}$")
+plt.xlabel(r"$\sigma_{in}$ (ms)")
 plt.ylabel("Abs. error")
 plt.savefig("deviations.pdf")
 plt.savefig("deviations.png")
