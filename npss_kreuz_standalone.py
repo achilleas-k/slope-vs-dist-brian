@@ -93,7 +93,7 @@ def get_fullrange_params():
     input_synchronies = np.arange(0, 1.1, 0.1)
     input_jitters = np.arange(0, 5e-3, 1e-3)
     return [p for p in it.product(input_synchronies, input_jitters, num_inputs,
-        input_frequencies, input_weights)]
+                                  input_frequencies, input_weights)]
 
 if __name__=='__main__':
     print("Setting up ...")
