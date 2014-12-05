@@ -13,6 +13,7 @@ from time import time
 import os
 from glob import glob
 from datetime import datetime
+import itertools as it
 
 defaultclock.dt = dt = 0.1*ms
 duration = 5*second
@@ -75,20 +76,31 @@ def lifsim(sync, sgm, n_in, inrate, weight):
     np.savez("%i.npz" % seed, config=config, results=results)
     return
 
+def get_random_params(nsims):
+    num_sims = nsims
+    num_inputs = 50+randint(150, size=num_sims)  # 50, 200
+    input_frequencies = 10+np.round(90*random(num_sims), 0)  # 10, 100
+    input_weights = np.round(5e-4*random(num_sims)+1e-4, 5)  # 1e-4, 5e-4
+    input_synchronies = np.round(random(num_sims), 2)  # 0, 1
+    input_jitters = np.round(4e-3*random(num_sims), 4)  # 0, 4e-3
+    return zip(input_synchronies, input_jitters, num_inputs,
+               input_frequencies, input_weights)
+
+def get_fullrange_params():
+    num_inputs = np.arange(50, 210, 10)
+    input_frequencies = np.arange(10, 110, 10)
+    input_weights = np.arange(1e-4, 6e-4, 1e-4)
+    input_synchronies = np.arange(0, 1.1, 0.1)
+    input_jitters = np.arange(0, 5e-3, 1e-3)
+    return it.product(num_inputs, input_frequencies, input_weights,
+                      input_synchronies, input_jitters)
 
 if __name__=='__main__':
     print("Setting up ...")
     today = datetime.now()
     today_str = "{}{}{}".format(today.year, today.month, today.day)
     data = DataManager(today_str)
-    num_sims = 200
-    num_inputs = 50+randint(150, size=num_sims)  # 50, 200
-    input_frequencies = 10+np.round(90*random(num_sims), 0)  # 10, 100
-    input_weights = np.round(5e-4*random(num_sims)+1e-4, 5)  # 1e-4, 5e-4
-    input_synchronies = np.round(random(num_sims), 2)  # 0, 1
-    input_jitters = np.round(4e-3*random(num_sims), 4)  # 0, 4e-3
-    params = zip(input_synchronies, input_jitters, num_inputs,
-                 input_frequencies, input_weights)
+    params = get_fullrange_params()
     print("Simulations configured. Running ...")
     run_tasks(data, lifsim, params, gui=False, poolsize=0,
               numitems=num_sims)
@@ -115,7 +127,3 @@ if __name__=='__main__':
              results=results)
     print("npz files stored in collectedrsults/{}.npz".format(today_str))
     print("DONE!")
-
-
-
-
