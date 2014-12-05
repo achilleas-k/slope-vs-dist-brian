@@ -98,7 +98,7 @@ def get_fullrange_params():
 if __name__=='__main__':
     print("Setting up ...")
     today = datetime.now()
-    today_str = "{}{}{}".format(today.year, today.month, today.day)
+    today_str = "{}{:02}{:02}".format(today.year, today.month, today.day)
     data = DataManager(today_str)
     params = get_fullrange_params()
     print("Simulations configured. Running ...")
