@@ -88,12 +88,12 @@ def get_random_params(nsims):
 
 def get_fullrange_params():
     num_inputs = np.arange(50, 210, 10)
-    input_frequencies = np.arange(10, 110, 10)
+    input_frequencies = np.arange(10.0, 110.0, 10.0)
     input_weights = np.arange(1e-4, 6e-4, 1e-4)
     input_synchronies = np.arange(0, 1.1, 0.1)
     input_jitters = np.arange(0, 5e-3, 1e-3)
-    return it.product(num_inputs, input_frequencies, input_weights,
-                      input_synchronies, input_jitters)
+    return [p for p in it.product(input_synchronies, input_jitters, num_inputs,
+        input_frequencies, input_weights)]
 
 if __name__=='__main__':
     print("Setting up ...")
@@ -101,8 +101,9 @@ if __name__=='__main__':
     today_str = "{}{:02}{:02}".format(today.year, today.month, today.day)
     data = DataManager(today_str)
     params = get_fullrange_params()
+    num_sims = len(params)
     print("Simulations configured. Running ...")
-    run_tasks(data, lifsim, params, gui=False, poolsize=0)
+    run_tasks(data, lifsim, params, gui=False, poolsize=0, numitems=num_sims)
     print("Simulations done!\nGathering npz files ...")
     npzfiles = glob("*.npz")
     results = []
