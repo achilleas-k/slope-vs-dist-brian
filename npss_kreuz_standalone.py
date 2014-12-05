@@ -126,4 +126,10 @@ if __name__=='__main__':
              configs=configs,
              results=results)
     print("npz files stored in collectedrsults/{}.npz".format(today_str))
+    print("Removing leftover npz files...")
+    for npz in npzfiles:
+        try:
+            os.remove(npz)
+        except IOError:
+            pass
     print("DONE!")
