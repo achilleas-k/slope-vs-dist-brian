@@ -102,8 +102,7 @@ if __name__=='__main__':
     data = DataManager(today_str)
     params = get_fullrange_params()
     print("Simulations configured. Running ...")
-    run_tasks(data, lifsim, params, gui=False, poolsize=0,
-              numitems=num_sims)
+    run_tasks(data, lifsim, params, gui=False, poolsize=0)
     print("Simulations done!\nGathering npz files ...")
     npzfiles = glob("*.npz")
     results = []
