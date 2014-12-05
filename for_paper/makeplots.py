@@ -73,7 +73,7 @@ jitters = jitters[sorted_idx]
 drive = (inrates*numin*weights*0.01).astype("float")
 
 print("Fitting curves...")
-curvefunc = cf5
+curvefunc = cf3
 popt, pcov = curve_fit(curvefunc, mnpss, kreuz)
 curvepts = curvefunc(mnpss, *popt)
 
@@ -108,8 +108,6 @@ plt.subplot2grid((11,11), (6,0), rowspan=4, colspan=4)
 plt.title("(b)"+" "*55)
 njpts = plt.scatter(mnpss[njidx], kreuz[njidx], vmin=0, vmax=vmax, c=colour[njidx])# c=jitters[njidx]*1000)
 plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
-#plt.plot(mnpss[njidx], njcurvepts, color="black", linestyle="-",
-#         linewidth=3, alpha=0.6)
 plt.xlabel(r"$\overline{M}$")
 plt.ylabel(r"$D_S$")
 plt.axis(xmin=0, xmax=1, ymin=0)
@@ -118,8 +116,6 @@ plt.subplot2grid((11,11), (6,6), rowspan=4, colspan=4)
 plt.title("(c)"+" "*55)
 plt.scatter(mnpss[pjidx], kreuz[pjidx], vmin=0, vmax=vmax, c=colour[pjidx])# c=jitters[pjidx]*1000)
 plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
-#plt.plot(mnpss[pjidx], pjcurvepts, color="black", linestyle="-",
-#         linewidth=3, alpha=0.6)
 plt.xlabel(r"$\overline{M}$")
 plt.ylabel(r"$D_S$")
 plt.axis(xmin=0, xmax=1, ymin=0)
@@ -149,17 +145,10 @@ plt.savefig("jitters_v_errors.png")
 
 print("Plotting error histograms (with jitter)...")
 plt.figure("Histograms (jitter)")
-#plt.hist(njerrors, color="black", normed=False, alpha=1.0)
-#plt.hist(pjerrors, color="grey",  normed=False, alpha=0.5)
-njhy, njhx = np.histogram(njerrors)
-pjhy, pjhx = np.histogram(pjerrors)
-plt.plot(njhx[:-1], njhy/len(allerrors), c="black",
-         label="$\sigma_{in} = 0$ ms")
-plt.plot(pjhx[:-1], pjhy/len(allerrors), c="grey",
-         label="$\sigma_{in} > 0$ ms")
-allhy, allhx = np.histogram(allerrors)
-plt.plot(allhx[:-1], allhy/len(allerrors), c="black", linestyle="--",
-         label="$\sigma_{in} \geq 0$ ms")
+njhy, njhx = np.histogram(njerrors, density=True)
+pjhy, pjhx = np.histogram(pjerrors, density=True)
+plt.plot(njhx[:-1], njhy, c="black", label="$\sigma_{in} = 0$ ms")
+plt.plot(pjhx[:-1], pjhy, c="grey", label="$\sigma_{in} > 0$ ms")
 plt.legend(loc="best")
 plt.savefig("error_hist_jitter.pdf")
 plt.savefig("error_hist_jitter.png")
@@ -191,18 +180,12 @@ plt.savefig("drive_v_errors.png")
 
 print("Plotting error histograms (with drive)...")
 plt.figure("Histograms (drive)")
-hdhy, hdhx = np.histogram(allerrors[drive>=0.030])
-gdhy, gdhx = np.histogram(allerrors[(drive>=0.015) & (drive < 0.030)])
-ldhy, ldhx = np.histogram(allerrors[drive<0.015])
-plt.plot(hdhx[:-1], hdhy/len(allerrors), c="grey", linestyle="--",
-         label=r"$\langle V \rangle \geq 2V_{th}$")
-plt.plot(gdhx[:-1], gdhy/len(allerrors), c="black",
-         label=r"$\langle V \rangle \geq V_{th}$")
-plt.plot(ldhx[:-1], ldhy/len(allerrors), c="grey",
-         label=r"$\langle V \rangle < V_{th}$")
-allhy, allhx = np.histogram(allerrors)
-plt.plot(allhx[:-1], allhy/len(allerrors), c="black", linestyle="--",
-         label="All data")
+hdhy, hdhx = np.histogram(allerrors[drive>=0.030], density=True)
+gdhy, gdhx = np.histogram(allerrors[(drive>=0.015) & (drive < 0.030)], density=True)
+ldhy, ldhx = np.histogram(allerrors[drive<0.015], density=True)
+plt.plot(hdhx[:-1], hdhy, c="grey", linestyle="--", label=r"$\langle V \rangle \geq 2V_{th}$")
+plt.plot(gdhx[:-1], gdhy, c="black", label=r"$\langle V \rangle \geq V_{th}$")
+plt.plot(ldhx[:-1], ldhy, c="grey", label=r"$\langle V \rangle < V_{th}$")
 plt.legend(loc="best")
 plt.savefig("error_hist_drive.pdf")
 plt.savefig("error_hist_drive.png")
