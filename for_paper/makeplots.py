@@ -26,8 +26,35 @@ def cf9(x, a, b, c, d, e, f, g, h, i):
     return np.polyval([a, b, c, d, e, f, g, h, i], x)
 
 def calcerrors(x, y, coef):
-    target = np.polyval(coef, x)
-    return abs(target-y)
+    allx = np.arange(0, 1.5, 0.0001)
+    ally = np.polyval(coef, allx)
+    errors = []
+    for xi, yi in zip(x, y):
+        distances = (xi-allx)**2+(yi-ally)**2
+        errors.append(min(distances))
+    return np.sqrt(errors)
+
+def plot_errors(x, y, coef):
+    allx = np.arange(0, 1.5, 0.0001)
+    ally = np.polyval(coef, allx)
+
+    plt.figure("deviations (on x)")
+    plt.plot(allx, ally, 'k')
+    for xi, yi in zip(x, y):
+        plt.plot([xi, xi], [yi, np.polyval(coef, xi)], c='black',
+                marker='.', linestyle='-')
+    plt.savefig("deviations_x.png")
+
+    plt.figure("deviations (from curve)")
+    plt.plot(allx, ally, 'k')
+    for xi, yi in zip(x, y):
+        distances = (xi-allx)**2+(yi-ally)**2
+        minidx = np.argmin(distances)
+        minx = allx[minidx]
+        miny = ally[minidx]
+        plt.plot([xi, minx], [yi, miny], c='black',
+                 marker='.', linestyle='-')
+    plt.savefig("deviations_curve.png")
 
 def clip(x, min, max):
     x[x < min] = min
@@ -130,10 +157,10 @@ plt.savefig("npss_v_dist.png")
 
 print("Fitted curve coefficients: {}".format(", ".join(str(p) for p in popt)))
 
-print("Calculating plotting deviations...")
+print("Calculating and plotting deviations...")
 allerrors = calcerrors(mnpss, kreuz, popt)
-njerrors = calcerrors(mnpss[njidx], kreuz[njidx], popt)
-pjerrors = calcerrors(mnpss[pjidx], kreuz[pjidx], popt)
+njerrors = allerrors[njidx]
+pjerrors = allerrors[pjidx]
 plt.figure("Jitter vs Errors")
 allerrs = plt.scatter(jitters, allerrors, c=drive)
 cbar = plt.colorbar(allerrs)
@@ -142,6 +169,8 @@ plt.xlabel(r"$\sigma_{in}$ (ms)")
 plt.ylabel("Abs. error")
 plt.savefig("jitters_v_errors.pdf")
 plt.savefig("jitters_v_errors.png")
+
+plot_errors(mnpss, kreuz, popt)
 
 print("Plotting error histograms (with jitter)...")
 plt.figure("Histograms (jitter)")
@@ -182,9 +211,12 @@ plt.savefig("drive_v_errors.png")
 
 print("Plotting error histograms (with drive)...")
 plt.figure("Histograms (drive)")
-hdhy, hdhx = np.histogram(allerrors[drive>=0.030], density=True)
-gdhy, gdhx = np.histogram(allerrors[(drive>=0.015) & (drive < 0.030)], density=True)
-ldhy, ldhx = np.histogram(allerrors[drive<0.015], density=True)
+hderrors = allerrors[drive>=0.03]
+gderrors = allerrors[(drive>=0.015) & (drive < 0.03)]
+lderrors = allerrors[drive<0.015]
+hdhy, hdhx = np.histogram(hderrors, density=True)
+gdhy, gdhx = np.histogram(gderrors, density=True)
+ldhy, ldhx = np.histogram(lderrors, density=True)
 allhy, allhx = np.histogram(allerrors, density=True)
 plt.plot(hdhx[:-1], hdhy, c="grey", linestyle="--", label=r"$\langle V \rangle \geq 2V_{th}$")
 plt.plot(gdhx[:-1], gdhy, c="black", label=r"$\langle V \rangle \geq V_{th}$")
@@ -195,7 +227,7 @@ plt.savefig("error_hist_drive.pdf")
 plt.savefig("error_hist_drive.png")
 
 print("Average absolute errors")
-print("Without jitter: {}".format(np.mean(njerrors)))
-print("With jitter:    {}".format(np.mean(pjerrors)))
-print("All:            {}".format(np.mean(allerrors)))
+print("High drive: {}".format(np.mean(hderrors)))
+print("Good drive: {}".format(np.mean(gderrors)))
+print("Low drive : {}".format(np.mean(lderrors)))
 print("Done")
