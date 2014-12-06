@@ -176,7 +176,7 @@ plt.savefig("jitters_v_errors.png")
 plot_errors(mnpss, kreuz, popt)
 
 print("Plotting error histograms (with jitter)...")
-histbins = np.arange(0, 1.001, 0.05)
+histbins = np.arange(0, 1.001, 0.2)
 plt.figure("Histograms (jitter)")
 njhy, njhx = np.histogram(njerrors, density=True, bins=histbins)
 pjhy, pjhx = np.histogram(pjerrors, density=True, bins=histbins)
@@ -208,6 +208,8 @@ plt.savefig("npss_v_dist_drive.png")
 
 plt.figure("Drive vs Errors")
 plt.scatter(drive, allerrors, c="black")
+plt.plot([0.015, 0.015], [0, 1], c="black", linestyle="--")
+plt.plot([0.040, 0.040], [0, 1], c="black", linestyle="--")
 plt.xlabel(r"$\langle V \rangle$")
 plt.ylabel("Abs. error")
 plt.savefig("drive_v_errors.pdf")
@@ -215,16 +217,17 @@ plt.savefig("drive_v_errors.png")
 
 print("Plotting error histograms (with drive)...")
 plt.figure("Histograms (drive)")
-hderrors = allerrors[drive>=0.03]
-gderrors = allerrors[(drive>=0.015) & (drive < 0.03)]
-lderrors = allerrors[drive<0.015]
+lowseg, highseg = 0.015, 0.04
+hderrors = allerrors[drive>=highseg]
+gderrors = allerrors[(drive>=lowseg) & (drive < highseg)]
+lderrors = allerrors[drive<lowseg]
 hdhy, hdhx = np.histogram(hderrors, density=True, bins=histbins)
 gdhy, gdhx = np.histogram(gderrors, density=True, bins=histbins)
 ldhy, ldhx = np.histogram(lderrors, density=True, bins=histbins)
-allhy, allhx = np.histogram(allerrors, density=True)
-plt.plot(hdhx[:-1], hdhy, c="grey", linestyle="--", label=r"$\langle V \rangle \geq 2V_{th}$")
-plt.plot(gdhx[:-1], gdhy, c="black", label=r"$1.33V_{th} \leq \langle V \rangle < 2V_{th}$")
-plt.plot(ldhx[:-1], ldhy, c="grey", label=r"$\langle V \rangle < 1.33V_{th}$")
+allhy, allhx = np.histogram(allerrors, density=True, bins=histbins)
+plt.plot(hdhx[:-1], hdhy, c="grey", linestyle="--", label=r"$\langle V \rangle \geq {} mV$".format(highseg*1000))
+plt.plot(gdhx[:-1], gdhy, c="black", label=r"${} mV \leq \langle V \rangle < {} mV$".format(lowseg*1000, highseg*1000))
+plt.plot(ldhx[:-1], ldhy, c="grey", label=r"$\langle V \rangle < {} mV$".format(lowseg*1000))
 plt.plot(allhx[:-1], allhy, c="black", linestyle="--", label="All samples")
 plt.legend(loc="best")
 plt.savefig("error_hist_drive.pdf")
@@ -234,7 +237,8 @@ print("Average absolute errors")
 print("High drive: {}".format(np.mean(hderrors)))
 print("Good drive: {}".format(np.mean(gderrors)))
 print("Low drive : {}".format(np.mean(lderrors)))
+# Statistical significance?
 print("Done")
 
-Make histograms for errors against all individual parameters
-Count the total number of errors in each bin and make a point about "higher probablility of large errors" for cases
+#Make histograms for errors against all individual parameters
+#Count the total number of errors in each bin and make a point about "higher probablility of large errors" for cases
