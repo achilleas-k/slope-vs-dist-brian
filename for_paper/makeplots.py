@@ -142,13 +142,15 @@ print("With jitter:    {}".format(np.count_nonzero(pjidx)))
 print("Total:          {}".format(len(mnpss)))
 
 print("Making plots...")
-fig = plt.figure("NPSS vs SPIKE-distance", dpi=100, figsize=(8,6))
+fig = plt.figure("NPSS vs SPIKE-distance with jitter", dpi=100, figsize=(8,6))
 ### All data points
-vmax = 1.0
-colour = clip(jitters*10000, 0, vmax)
+#vmax = 1.0
+#colour = clip(jitters*10000, 0, vmax)
+colour = jitters*1000
+vmax = max(colour)
 plt.subplot2grid((11,11), (0,0), rowspan=4, colspan=10)
 plt.title("(a)"+" "*110)
-allpts = plt.scatter(mnpss, kreuz, vmin=0, vmax=vmax, c=colour)# c=jitters*1000)
+allpts = plt.scatter(mnpss, kreuz, vmin=0, vmax=vmax, c=colour)
 plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
 plt.xlabel(r"$\overline{M}$")
 plt.ylabel(r"$D_S$")
@@ -157,7 +159,7 @@ plt.axis(xmin=0, xmax=1, ymin=0)
 ### Split jitter from no-jitter
 plt.subplot2grid((11,11), (6,0), rowspan=4, colspan=4)
 plt.title("(b)"+" "*55)
-njpts = plt.scatter(mnpss[njidx], kreuz[njidx], vmin=0, vmax=vmax, c=colour[njidx])# c=jitters[njidx]*1000)
+njpts = plt.scatter(mnpss[njidx], kreuz[njidx], vmin=0, vmax=vmax, c=colour[njidx])
 plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
 plt.xlabel(r"$\overline{M}$")
 plt.ylabel(r"$D_S$")
@@ -165,7 +167,7 @@ plt.axis(xmin=0, xmax=1, ymin=0)
 
 plt.subplot2grid((11,11), (6,6), rowspan=4, colspan=4)
 plt.title("(c)"+" "*55)
-plt.scatter(mnpss[pjidx], kreuz[pjidx], vmin=0, vmax=vmax, c=colour[pjidx])# c=jitters[pjidx]*1000)
+plt.scatter(mnpss[pjidx], kreuz[pjidx], vmin=0, vmax=vmax, c=colour[pjidx])
 plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
 plt.xlabel(r"$\overline{M}$")
 plt.ylabel(r"$D_S$")
@@ -173,11 +175,11 @@ plt.axis(xmin=0, xmax=1, ymin=0)
 
 cax = fig.add_axes([0.9, 0.15, 0.03, 0.75])
 cbar = plt.colorbar(allpts, cax=cax)
-cbar.set_label(r"$\sigma_{in}$ (ms)")
+cbar.set_label(r"$\sigma_{in}$ (V)")
 
 plt.subplots_adjust(wspace=0.2, hspace=0.2)
-plt.savefig("npss_v_dist.pdf")
-plt.savefig("npss_v_dist.png")
+plt.savefig("npss_v_dist_drive.pdf")
+plt.savefig("npss_v_dist_drive.png")
 
 print("Fitted curve coefficients: {}".format(", ".join(str(p) for p in popt)))
 
@@ -227,6 +229,55 @@ cbar.set_label(r"$\langle V \rangle$")
 plt.savefig("npss_v_dist_drive.pdf")
 plt.savefig("npss_v_dist_drive.png")
 
+### PLOT NPSS V DISTANCE WITH DRIVE AS COLOUR
+fig = plt.figure("NPSS vs SPIKE-distance with drive", dpi=100, figsize=(8,6))
+lowseg, highseg = 0.015, 0.04
+### All data points
+vmax = max(drive)
+plt.subplot2grid((11,18), (0,0), rowspan=4, colspan=16)
+plt.title("(a)")
+allpts = plt.scatter(mnpss, kreuz, vmin=0, vmax=vmax, c=drive)
+plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
+plt.xlabel(r"$\overline{M}$")
+plt.ylabel(r"$D_S$")
+plt.axis(xmin=0, xmax=1, ymin=0)
+
+### Split three drive bands
+lowidx = drive < lowseg
+mididx = (lowseg <= drive) & (drive < highseg)
+highidx = highseg <= drive
+plt.subplot2grid((11,18), (6,0), rowspan=4, colspan=4)
+plt.title("(b)")
+njpts = plt.scatter(mnpss[lowidx], kreuz[lowidx], vmin=0, vmax=vmax, c=drive[lowidx])
+plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
+plt.xlabel(r"$\overline{M}$")
+plt.ylabel(r"$D_S$")
+plt.axis(xmin=0, xmax=1, ymin=0)
+
+plt.subplot2grid((11,18), (6,6), rowspan=4, colspan=4)
+plt.title("(c)")
+plt.scatter(mnpss[mididx], kreuz[mididx], vmin=0, vmax=vmax, c=drive[mididx])
+plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
+plt.xlabel(r"$\overline{M}$")
+plt.ylabel(r"$D_S$")
+plt.axis(xmin=0, xmax=1, ymin=0)
+
+plt.subplot2grid((11,18), (6,12), rowspan=4, colspan=4)
+plt.title("(d)")
+plt.scatter(mnpss[highidx], kreuz[highidx], vmin=0, vmax=vmax, c=drive[highidx])
+plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
+plt.xlabel(r"$\overline{M}$")
+plt.ylabel(r"$D_S$")
+plt.axis(xmin=0, xmax=1, ymin=0)
+
+cax = fig.add_axes([0.85, 0.15, 0.03, 0.75])
+cbar = plt.colorbar(allpts, cax=cax)
+cbar.set_label(r"$\langle V \rangle$ (ms)")
+
+plt.subplots_adjust(wspace=0.2, hspace=0.2)
+plt.savefig("npss_v_dist_jitter.pdf")
+plt.savefig("npss_v_dist_jitter.png")
+
 plt.figure("Drive vs Errors")
 plt.scatter(drive, allerrors, c="black")
 plt.plot([0.015, 0.015], [0, 1], c="black", linestyle="--")
@@ -238,7 +289,6 @@ plt.savefig("drive_v_errors.png")
 
 print("Plotting error histograms (with drive)...")
 plt.figure("Histograms (drive)")
-lowseg, highseg = 0.015, 0.04
 hderrors = allerrors[drive>=highseg]
 gderrors = allerrors[(drive>=lowseg) & (drive < highseg)]
 lderrors = allerrors[drive<lowseg]
