@@ -56,6 +56,27 @@ def plot_errors(x, y, coef):
                  marker='.', linestyle='-')
     plt.savefig("deviations_curve.png")
 
+def avgerrover(errors, variable, varname):
+    plt.figure("Averate error over {}".format(varname))
+    avgerr = []
+    segments = np.linspace(0, max(variable), 100)
+    for lo, hi in zip(segments[:-1], segments[1:]):
+        segerr = allerrors[(lo <= variable) & (variable < hi)]
+        if len(segerr):
+            avgerr.append(np.mean(segerr))
+        else:
+            avgerr.append(0)
+    plt.plot(segments[:-1], avgerr, c='black')
+    filename = "segmented_average_errors_{}.png".format(varname)
+    plt.savefig(filename)
+    print("Saved {}".format(filename))
+    filename = "segmented_average_errors_{}.pdf".format(varname)
+    plt.savefig(filename)
+    print("Saved {}".format(filename))
+
+plt.figure("Averate error over synchrony")
+
+
 def clip(x, min, max):
     x[x < min] = min
     x[x > max] = max
@@ -233,33 +254,12 @@ plt.legend(loc="best")
 plt.savefig("error_hist_drive.pdf")
 plt.savefig("error_hist_drive.png")
 
-plt.figure("Average error over drive")
-avgerrdrive = []
-segments = np.arange(0.001, max(drive), 0.001)
-for v in segments:
-    lo = v-0.001
-    hi = v
-    segerr = allerrors[(lo <= drive) & (drive < hi)]
-    if len(segerr):
-        avgerrdrive.append(np.mean(segerr))
-    else:
-        avgerrdrive.append(0)
-plt.plot(segments, avgerrdrive, c='black')
-plt.savefig("segmented_average_errors_drive.png")
-
-plt.figure("Average error over jitter")
-avgerrjitt = []
-segments = np.arange(0.0001, max(jitters), 0.0001)
-for s in segments:
-    lo = s-0.0001
-    hi = s
-    segerr = allerrors[(lo <= jitters) & (jitters < hi)]
-    if len(segerr):
-        avgerrjitt.append(np.mean(segerr))
-    else:
-        avgerrjitt.append(0)
-plt.plot(segments, avgerrjitt, c='black')
-plt.savefig("segmented_average_errors_jitter.png")
+avgerrover(allerrors, jitters, "jitter")
+avgerrover(allerrors, synchs, "syncrhony")
+avgerrover(allerrors, weights, "weight")
+avgerrover(allerrors, numin, "N_in")
+avgerrover(allerrors, inrates, "f_in")
+avgerrover(allerrors, drive, "drive")
 
 print("Average absolute errors")
 print("High drive: {}".format(np.mean(hderrors)))
