@@ -59,7 +59,7 @@ def plot_errors(x, y, coef):
 def avgerrover(errors, variable, varname):
     plt.figure("Averate error over {}".format(varname))
     avgerr = []
-    segments = np.linspace(0, max(variable), 100)
+    segments = np.linspace(0, max(variable), 20)
     for lo, hi in zip(segments[:-1], segments[1:]):
         segerr = allerrors[(lo <= variable) & (variable < hi)]
         if len(segerr):
