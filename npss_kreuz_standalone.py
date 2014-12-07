@@ -79,7 +79,7 @@ def lifsim(sync, sgm, n_in, inrate, weight):
 def get_random_params(nsims):
     num_sims = nsims
     num_inputs = 50+randint(150, size=num_sims)  # 50, 200
-    input_frequencies = 10+np.round(90*random(num_sims), 0)  # 10, 100
+    input_frequencies = 10+np.round(190*random(num_sims), 0)  # 10, 200
     input_weights = np.round(5e-4*random(num_sims)+1e-4, 5)  # 1e-4, 5e-4
     input_synchronies = np.round(random(num_sims), 2)  # 0, 1
     input_jitters = np.round(4e-3*random(num_sims), 4)  # 0, 4e-3
@@ -107,8 +107,13 @@ if __name__=='__main__':
     run_tasks(data, lifsim, params, gui=False, poolsize=0, numitems=num_sims)
     print("Simulations done!\nGathering npz files ...")
     npzfiles = glob("*.npz")
+    try:
+        os.makedirs("collectedresults")
+    except OSError:
+        pass
     results = []
     configs = []
+    outcount = 0
     for npz in npzfiles:
         print("Adding {}...".format(npz))
         data = np.load(npz)
@@ -122,10 +127,21 @@ if __name__=='__main__':
             newresu[k] = resu[k]
         configs.append(newconf)
         results.append(newresu)
-    os.makedirs("collectedresults")
-    np.savez("collectedresults/"+today_str+".npz",
+        if len(configs) >= 500:
+            outcount+=1
+            filename = "collectedresults/"+today_str+"-"+str(outcount)+".npz"
+            np.savez(filename,
+                     configs=configs,
+                     results=results)
+            print("Saved "+filename)
+            configs = []
+            results = []
+    outcount+=1
+    filename = "collectedresults/"+today_str+"-"+str(outcount)+".npz"
+    np.savez(filename,
              configs=configs,
              results=results)
+
     print("npz files stored in collectedrsults/{}.npz".format(today_str))
     print("Removing leftover npz files...")
     for npz in npzfiles:
