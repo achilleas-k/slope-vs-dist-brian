@@ -86,6 +86,7 @@ def clip(x, min, max):
 plt.rcParams['image.cmap'] = 'gray'
 
 print("Loading data...")
+vth = 0.015  # threshold value used in simulations
 mnpss = []
 kreuz = []
 synchs = []
@@ -149,7 +150,7 @@ fig = plt.figure("NPSS vs SPIKE-distance with jitter", dpi=100, figsize=(8,6))
 colour = jitters*1000
 vmax = max(colour)
 plt.subplot2grid((11,11), (0,0), rowspan=4, colspan=10)
-plt.title("(a)"+" "*110)
+plt.title("(a)")
 allpts = plt.scatter(mnpss, kreuz, vmin=0, vmax=vmax, c=colour)
 plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
 plt.xlabel(r"$\overline{M}$")
@@ -158,7 +159,7 @@ plt.axis(xmin=0, xmax=1, ymin=0)
 
 ### Split jitter from no-jitter
 plt.subplot2grid((11,11), (6,0), rowspan=4, colspan=4)
-plt.title("(b)"+" "*55)
+plt.title("(b)")
 njpts = plt.scatter(mnpss[njidx], kreuz[njidx], vmin=0, vmax=vmax, c=colour[njidx])
 plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
 plt.xlabel(r"$\overline{M}$")
@@ -166,20 +167,20 @@ plt.ylabel(r"$D_S$")
 plt.axis(xmin=0, xmax=1, ymin=0)
 
 plt.subplot2grid((11,11), (6,6), rowspan=4, colspan=4)
-plt.title("(c)"+" "*55)
+plt.title("(c)")
 plt.scatter(mnpss[pjidx], kreuz[pjidx], vmin=0, vmax=vmax, c=colour[pjidx])
 plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
 plt.xlabel(r"$\overline{M}$")
 plt.ylabel(r"$D_S$")
 plt.axis(xmin=0, xmax=1, ymin=0)
 
-cax = fig.add_axes([0.9, 0.15, 0.03, 0.75])
+cax = fig.add_axes([0.85, 0.15, 0.03, 0.75])
 cbar = plt.colorbar(allpts, cax=cax)
-cbar.set_label(r"$\sigma_{in}$ (V)")
+cbar.set_label(r"$\sigma_{in}$ (ms)")
 
 plt.subplots_adjust(wspace=0.2, hspace=0.2)
-plt.savefig("npss_v_dist_drive.pdf")
-plt.savefig("npss_v_dist_drive.png")
+plt.savefig("npss_v_dist_jitter.pdf")
+plt.savefig("npss_v_dist_jitter.png")
 
 print("Fitted curve coefficients: {}".format(", ".join(str(p) for p in popt)))
 
@@ -217,38 +218,27 @@ print("With jitter:    {}".format(np.mean(pjerrors)))
 print("All:            {}".format(np.mean(allerrors)))
 
 print("Plotting results with drive...")
-fig = plt.figure("NPSS vs SPIKE-distance with drive", dpi=100, figsize=(8,6))
-idx = drive > 0.02
-allpts = plt.scatter(mnpss[idx], kreuz[idx], c=drive[idx])
-plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
-plt.xlabel(r"$\overline{M}$")
-plt.ylabel(r"$D_S$")
-plt.axis(xmin=0, xmax=1, ymin=0)
-cbar = plt.colorbar(allpts)
-cbar.set_label(r"$\langle V \rangle$")
-plt.savefig("npss_v_dist_drive.pdf")
-plt.savefig("npss_v_dist_drive.png")
-
 ### PLOT NPSS V DISTANCE WITH DRIVE AS COLOUR
 fig = plt.figure("NPSS vs SPIKE-distance with drive", dpi=100, figsize=(8,6))
-lowseg, highseg = 0.015, 0.04
+lowseg, highseg = vth, 0.04
 ### All data points
-vmax = max(drive)
+colour = drive*1000
+vmax = max(colour)
 plt.subplot2grid((11,18), (0,0), rowspan=4, colspan=16)
 plt.title("(a)")
-allpts = plt.scatter(mnpss, kreuz, vmin=0, vmax=vmax, c=drive)
+allpts = plt.scatter(mnpss, kreuz, vmin=0, vmax=vmax, c=colour)
 plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
 plt.xlabel(r"$\overline{M}$")
 plt.ylabel(r"$D_S$")
 plt.axis(xmin=0, xmax=1, ymin=0)
 
-### Split three drive bands
+### Split three colour bands
 lowidx = drive < lowseg
 mididx = (lowseg <= drive) & (drive < highseg)
 highidx = highseg <= drive
 plt.subplot2grid((11,18), (6,0), rowspan=4, colspan=4)
 plt.title("(b)")
-njpts = plt.scatter(mnpss[lowidx], kreuz[lowidx], vmin=0, vmax=vmax, c=drive[lowidx])
+njpts = plt.scatter(mnpss[lowidx], kreuz[lowidx], vmin=0, vmax=vmax, c=colour[lowidx])
 plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
 plt.xlabel(r"$\overline{M}$")
 plt.ylabel(r"$D_S$")
@@ -256,7 +246,7 @@ plt.axis(xmin=0, xmax=1, ymin=0)
 
 plt.subplot2grid((11,18), (6,6), rowspan=4, colspan=4)
 plt.title("(c)")
-plt.scatter(mnpss[mididx], kreuz[mididx], vmin=0, vmax=vmax, c=drive[mididx])
+plt.scatter(mnpss[mididx], kreuz[mididx], vmin=0, vmax=vmax, c=colour[mididx])
 plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
 plt.xlabel(r"$\overline{M}$")
 plt.ylabel(r"$D_S$")
@@ -264,7 +254,7 @@ plt.axis(xmin=0, xmax=1, ymin=0)
 
 plt.subplot2grid((11,18), (6,12), rowspan=4, colspan=4)
 plt.title("(d)")
-plt.scatter(mnpss[highidx], kreuz[highidx], vmin=0, vmax=vmax, c=drive[highidx])
+plt.scatter(mnpss[highidx], kreuz[highidx], vmin=0, vmax=vmax, c=colour[highidx])
 plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
 plt.xlabel(r"$\overline{M}$")
 plt.ylabel(r"$D_S$")
@@ -272,15 +262,15 @@ plt.axis(xmin=0, xmax=1, ymin=0)
 
 cax = fig.add_axes([0.85, 0.15, 0.03, 0.75])
 cbar = plt.colorbar(allpts, cax=cax)
-cbar.set_label(r"$\langle V \rangle$ (ms)")
+cbar.set_label(r"$\langle V \rangle$ (mV)")
 
 plt.subplots_adjust(wspace=0.2, hspace=0.2)
-plt.savefig("npss_v_dist_jitter.pdf")
-plt.savefig("npss_v_dist_jitter.png")
+plt.savefig("npss_v_dist_drive.pdf")
+plt.savefig("npss_v_dist_drive.png")
 
 plt.figure("Drive vs Errors")
 plt.scatter(drive, allerrors, c="black")
-plt.plot([0.015, 0.015], [0, 1], c="black", linestyle="--")
+plt.plot([vth, vth], [0, 1], c="black", linestyle="--")
 plt.plot([0.040, 0.040], [0, 1], c="black", linestyle="--")
 plt.xlabel(r"$\langle V \rangle$")
 plt.ylabel("Abs. error")
@@ -315,6 +305,53 @@ print("Average absolute errors")
 print("High drive: {}".format(np.mean(hderrors)))
 print("Good drive: {}".format(np.mean(gderrors)))
 print("Low drive : {}".format(np.mean(lderrors)))
+
+print("Plotting the four cases from our first paper...")
+peaks = numin*weights
+### case 1: low peak, low drive
+case_one_idx = (peaks < vth) & (drive < vth)
+plt.subplot(2, 2, 1)
+plt.scatter(mnpss[case_one_idx], kreuz[case_one_idx], c='black')
+plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
+plt.title("(a)")
+plt.ylabel("$D_S$")
+plt.xticks([])
+### case 2: high peak, low drive
+case_two_idx = (peaks >= vth) & (drive < vth)
+plt.subplot(2, 2, 2)
+plt.scatter(mnpss[case_two_idx], kreuz[case_two_idx], c='black')
+plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
+plt.title("(b)")
+plt.xticks([])
+plt.yticks([])
+### case 3: low peak, high drive
+case_three_idx = (peaks < vth) & (drive >= vth)
+plt.subplot(2, 2, 3)
+plt.scatter(mnpss[case_three_idx], kreuz[case_three_idx], c='black')
+plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
+plt.title("(c)")
+plt.xlabel("$\overline{M}$")
+plt.ylabel("$D_S$")
+### case 4: high peak, high drive
+case_four_idx = (peaks >= vth) & (drive >= vth)
+plt.subplot(2, 2, 4)
+plt.scatter(mnpss[case_four_idx], kreuz[case_four_idx], c='black')
+plt.plot(mnpss, curvepts, color="black", linestyle="-", linewidth=5, alpha=0.5)
+plt.title("(d)")
+plt.xlabel("$\overline{M}$")
+plt.yticks([])
+
+plt.subplots_adjust(wspace=0.2, hspace=0.2)
+
+plt.savefig("four_case_split.png")
+plt.savefig("four_case_split.pdf")
+
+print("Average errors")
+print("Case 1: {}".format(np.mean(allerrors[case_one_idx])))
+print("Case 2: {}".format(np.mean(allerrors[case_two_idx])))
+print("Case 3: {}".format(np.mean(allerrors[case_three_idx])))
+print("Case 4: {}".format(np.mean(allerrors[case_four_idx])))
+
 # Statistical significance?
 print("Done")
 
