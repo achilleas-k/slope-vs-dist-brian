@@ -41,6 +41,7 @@ def read_it_all_in(globstring):
         inrates.extend(get_param(configs, "f_in"))
         numin.extend(get_param(configs, "N_in"))
         weights.extend(get_param(configs, "weight"))
+        break
     mnpss = np.array(mnpss)
     kreuz = np.array(kreuz)
     synchs = np.array(synchs)
@@ -131,12 +132,25 @@ for dr in np.arange(0, max(drive), 0.001):
     if not any(idx):
         continue
     plt.clf()
-    fig = plt.scatter(mnpss[idx], kreuz[idx], c=peaks[idx])
+    pkpre = 0
+    fig = plt.scatter(mnpss[idx], kreuz[idx], c=peaks[idx]*1000)
+    curpeaks = peaks[idx]
+    curkreuz = kreuz[idx]
+    curmnpss = mnpss[idx]
+    for pk in np.arange(min(curpeaks), max(curpeaks), 0.001):
+        NOT WORKING PROPERLY
+        CONNECT SIMILAR COLOURS (within 1 mV of eachother) WITH A DASHED LINE
+        lineidx = (pkpre <= curpeaks) & (curpeaks < pk)
+        if np.count_nonzero(lineidx) < 2:
+            continue
+        plt.plot(curmnpss[lineidx], curkreuz[lineidx], 'k--', figure=fig)
+        pkpre = pk
     cbar = plt.colorbar()
     plt.xlabel(r"$\overline{M}$")
     plt.ylabel(r"$S_{m}$")
-    cbar.set_label("$\Delta_v$")
+    cbar.set_label("$\Delta_v$ mV")
     plt.title(r"${} \leq \langle V \rangle < {}$ mV".format(drpre*1000, dr*1000))
+    plt.axis(xmin=0, xmax=1, ymin=0, ymax=3)
     filename = "drivefigs/drive{:05d}.png".format(int(dr*1000))
     plt.savefig(filename)
     print("Saved {}...".format(filename))
@@ -154,12 +168,13 @@ for pk in np.arange(0, max(peaks), 0.001):
     if not any(idx):
         continue
     plt.clf()
-    fig = plt.scatter(mnpss[idx], kreuz[idx], c=drive[idx])
+    fig = plt.scatter(mnpss[idx], kreuz[idx], c=drive[idx]*1000)
     cbar = plt.colorbar()
     plt.xlabel(r"$\overline{M}$")
     plt.ylabel(r"$S_{m}$")
-    cbar.set_label(r"$\langle V \rangle$")
+    cbar.set_label(r"$\langle V \rangle$ mV")
     plt.title(r"${} \leq \Delta_v < {}$ mV".format(pkpre*1000, pk*1000))
+    plt.axis(xmin=0, xmax=1, ymin=0, ymax=3)
     filename = "peakfigs/peak{:05d}.png".format(int(pk*1000))
     plt.savefig(filename)
     print("Saved {}...".format(filename))
