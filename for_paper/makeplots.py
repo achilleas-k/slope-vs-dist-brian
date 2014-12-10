@@ -1,3 +1,9 @@
+"""
+Create a bunch of plots that show the relationship between all the points.
+Test the deviation from the underlying relationship across parameter values.
+Separate into meaningful cases and check how they affect the distribution of
+deviations from the curve.
+"""
 from __future__ import division, print_function
 import numpy as np
 import matplotlib.pyplot as plt
