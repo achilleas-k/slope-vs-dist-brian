@@ -7,8 +7,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 _ = Axes3D  # silence warning about unused import
-from scipy.optimize import curve_fit
+#from scipy.optimize import curve_fit
 from glob import glob
+import os
 
 def get_mnpss(results):
     return [np.mean(r["npss"]) for r in results]
@@ -59,7 +60,7 @@ def read_it_all_in(globstring):
 
 
 
-plt.rcParams['image.cmap'] = 'gray'
+#plt.rcParams['image.cmap'] = 'gray'
 vth = 0.015  # threshold value used in simulations
 tau = 0.01
 mnpss, kreuz, jitters, inrates, numin, weights = read_it_all_in("../npzfiles/*.npz")
@@ -69,16 +70,16 @@ drive = (inrates*numin*weights*tau).astype("float")
 peaks = (numin*weights).astype("float")
 
 # get rid of excessively high drive
-nd_idx = drive <= 0.04
-mnpss = mnpss[nd_idx]
-kreuz = kreuz[nd_idx]
-jitters = jitters[nd_idx]
-inrates = inrates[nd_idx]
-numin = numin[nd_idx]
-weights = weights[nd_idx]
-
-drive = drive[nd_idx]
-peaks = peaks[nd_idx]
+#nd_idx = drive <= 0.04
+#mnpss = mnpss[nd_idx]
+#kreuz = kreuz[nd_idx]
+#jitters = jitters[nd_idx]
+#inrates = inrates[nd_idx]
+#numin = numin[nd_idx]
+#weights = weights[nd_idx]
+#
+#drive = drive[nd_idx]
+#peaks = peaks[nd_idx]
 
 
 # colour the four cases
@@ -118,11 +119,49 @@ plt.savefig("npss_kreuz_cases.png")
 #ax.set_zlabel(r"$\overline{M}/S_{m}$")
 #plt.show()
 
-# ignore the peak
-fig = plt.figure()
-ax = fig.add_subplot(111, projection="3d")
-ax.scatter3D(mnpss, kreuz, drive, c=drive)
-ax.set_xlabel(r"$\overline{M}$")
-ax.set_ylabel(r"$S_{m}$")
-ax.set_zlabel(r"$\langle V \rangle$")
-plt.show()
+# make one plot for each drive value (1 mV intervals)
+try:
+    os.makedirs("drivefigs")
+except OSError:
+    pass
+drpre = 0
+plt.figure()
+for dr in np.arange(0, max(drive), 0.001):
+    idx = (drpre <= drive) & (drive < dr)
+    if not any(idx):
+        continue
+    plt.clf()
+    fig = plt.scatter(mnpss[idx], kreuz[idx], c=peaks[idx])
+    cbar = plt.colorbar()
+    plt.xlabel(r"$\overline{M}$")
+    plt.ylabel(r"$S_{m}$")
+    cbar.set_label("$\Delta_v$")
+    plt.title(r"${} \leq \langle V \rangle < {}$ mV".format(drpre*1000, dr*1000))
+    filename = "drivefigs/drive{:05d}.png".format(int(dr*1000))
+    plt.savefig(filename)
+    print("Saved {}...".format(filename))
+    drpre = dr
+
+# make one plot for each peak value (1 mV intervals)
+try:
+    os.makedirs("peakfigs")
+except OSError:
+    pass
+pkpre = 0
+plt.figure()
+for pk in np.arange(0, max(peaks), 0.001):
+    idx = (pkpre <= peaks) & (peaks < pk)
+    if not any(idx):
+        continue
+    plt.clf()
+    fig = plt.scatter(mnpss[idx], kreuz[idx], c=drive[idx])
+    cbar = plt.colorbar()
+    plt.xlabel(r"$\overline{M}$")
+    plt.ylabel(r"$S_{m}$")
+    cbar.set_label(r"$\langle V \rangle$")
+    plt.title(r"${} \leq \Delta_v < {}$ mV".format(pkpre*1000, pk*1000))
+    filename = "peakfigs/peak{:05d}.png".format(int(pk*1000))
+    plt.savefig(filename)
+    print("Saved {}...".format(filename))
+    pkpre = pk
+
