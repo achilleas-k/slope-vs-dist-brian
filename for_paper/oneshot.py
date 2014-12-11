@@ -62,7 +62,7 @@ def lifsim(n_in, inrate, weight):
     mnpss = []
     print("Calculating spike train distance and NPSS...")
     for idx in range(nsims):
-        input_spiketrains = inmon[idx]
+        input_spiketrains = inputmons[idx]
         t, d = sl.metrics.kreuz.multivariate(input_spiketrains,
                                              0*second, duration,
                                              int(duration/dt))
