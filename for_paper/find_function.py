@@ -142,8 +142,8 @@ plt.figure()
 pmin, pmax = (min(peaks), max(peaks))
 for dr in np.arange(0, max(drive), 0.001):
     idx = (drpre <= drive) & (drive < dr)
-    drpre = dr
     if not any(idx):
+        drpre = dr
         continue
     plt.clf()
     fig = plt.scatter(mnpss[idx], kreuz[idx], c=peaks[idx]*1000,
@@ -169,6 +169,7 @@ for dr in np.arange(0, max(drive), 0.001):
     filename = "drivefigs/drive{:05d}.png".format(int(dr*1000))
     plt.savefig(filename)
     print("Saved {}...".format(filename))
+    drpre = dr
 
 # make one plot for each peak value (1 mV intervals)
 try:
@@ -180,8 +181,8 @@ plt.figure()
 dmin, dmax = (min(drive), max(drive))
 for pk in np.arange(0, max(peaks), 0.001):
     idx = (pkpre <= peaks) & (peaks < pk)
-    pkpre = pk
     if not any(idx):
+        pkpre = pk
         continue
     plt.clf()
     fig = plt.scatter(mnpss[idx], kreuz[idx], c=drive[idx]*1000,
@@ -207,4 +208,5 @@ for pk in np.arange(0, max(peaks), 0.001):
     filename = "peakfigs/peak{:05d}.png".format(int(pk*1000))
     plt.savefig(filename)
     print("Saved {}...".format(filename))
+    pkpre = pk
 
