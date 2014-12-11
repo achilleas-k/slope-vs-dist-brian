@@ -18,6 +18,7 @@ def lifsim(n_in, inrate, weight):
     Vth = 15*mV
     tau = 10*ms
     duration = 5*second
+    slope_w = 2*ms
     nsims = len(sync)*len(sigma)
 
     print("Setting up simulation:")
@@ -44,6 +45,9 @@ def lifsim(n_in, inrate, weight):
         # monitor
         inm = SpikeMonitor(ing)
         inputmons.append(inm)
+        print("\r{}/{}...".format(len(sync_conf), nsims), end="")
+        sys.stdout.flush()
+    print()
     netw.add(*inputgroups)
     netw.add(*inputconns)
     netw.add(*inputmons)
@@ -63,14 +67,18 @@ def lifsim(n_in, inrate, weight):
     mnpss = []
     print("Calculating spike train distance and NPSS...")
     for idx in range(nsims):
-        input_spiketrains = inputmons[idx]
+        input_spiketrains = inputmons[idx].spiketimes.values()
         t, d = sl.metrics.kreuz.multivariate(input_spiketrains,
                                              0*second, duration,
                                              int(duration/dt))
         krdists.append(np.trapz(d, t))
+        print("\r{}.5/{}...".format(len(mnpss), nsims), end="")
+        sys.stdout.flush()
         npss = sl.tools.npss(vmon[idx], outmon[idx], 0*mV, Vth, tau, slope_w)
         mnpss.append(mean(npss))
-    print("done!")
+        print("\r{}.0/{}...".format(len(mnpss), nsims), end="")
+        sys.stdout.flush()
+    print("\nDone!")
     return sync_conf, krdists, mnpss
 
 
