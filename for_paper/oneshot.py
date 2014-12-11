@@ -69,6 +69,9 @@ def lifsim(n_in, inrate, weight):
 if __name__=='__main__':
     print("Setting up ...")
     Nin, fin, weight = sys.argv[1:4]
+    Nin = int(Nin)
+    fin = int(fin)
+    weight = float(weight)
     print("Num inputs:   {}\n"
           "Input rate:   {} Hz\n"
           "Input weight: {} mV".format(Nin, fin, weight))
