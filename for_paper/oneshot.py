@@ -10,6 +10,7 @@ import sys
 
 
 def lifsim(n_in, inrate, weight):
+    defaultclock.dt = dt = 0.1*ms
     sync = np.arange(0, 1.1, 0.1)
     sigma = np.arange(0, 4.1, 0.5)*ms
     inrate = inrate*Hz
