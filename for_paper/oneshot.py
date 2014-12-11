@@ -3,6 +3,7 @@ Pick fixed values to demonstrate different cases and smooth lines.
 """
 from __future__ import division, print_function
 from brian import *
+import spikerlib as sl
 import numpy as np
 import itertools as it
 import sys
@@ -15,9 +16,12 @@ def lifsim(n_in, inrate, weight):
     weight = weight*volt
     Vth = 15*mV
     tau = 10*ms
+    duration = 5*second
     nsims = len(sync)*len(sigma)
 
+    print("Setting up simulation:")
     # neuron
+    print("Configuring neuron...")
     neuron = NeuronGroup(nsims, "dV/dt = -V/tau : volt",
                          threshold="V>Vth", reset="V=0*mvolt", refractory=1*ms)
     neuron.V = 0*mvolt
@@ -26,6 +30,7 @@ def lifsim(n_in, inrate, weight):
     inputconns = []
     inputmons = []
     sync_conf = []
+    print("Creating inputs connections and monitors...")
     for s, j in it.product(sync, sigma):
         sync_conf.append((s, j))
         # inputs
@@ -37,7 +42,7 @@ def lifsim(n_in, inrate, weight):
         inputconns.append(inc)
         # monitor
         inm = SpikeMonitor(ing)
-        inputmons.append(inp)
+        inputmons.append(inm)
     netw.add(*inputgroups)
     netw.add(*inputconns)
     netw.add(*inputmons)
@@ -45,14 +50,17 @@ def lifsim(n_in, inrate, weight):
     vmon = StateMonitor(neuron, "V", record=True)
     outmon = SpikeMonitor(neuron)
     netw.add(vmon, outmon)
+    print("Running simulation for {} seconds...".format(duration))
     # run
-    netw.run(duration, report=None)
+    netw.run(duration, report="stdout")
+    print("Simulation finished!")
     if outmon.nspikes < 2:
         print("Warning: No spikes were fired from any of the simulations")
         return
     vmon.insert_spikes(outmon, Vth)
     krdists = []
     mnpss = []
+    print("Calculating spike train distance and NPSS...")
     for idx in range(nsims):
         input_spiketrains = inmon[idx]
         t, d = sl.metrics.kreuz.multivariate(input_spiketrains,
@@ -61,6 +69,7 @@ def lifsim(n_in, inrate, weight):
         krdists.append(np.trapz(d, t))
         npss = sl.tools.npss(vmon[idx], outmon[idx], 0*mV, Vth, tau, slope_w)
         mnpss.append(mean(npss))
+    print("done!")
     return sync_conf, krdists, mnpss
 
 
