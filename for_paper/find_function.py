@@ -41,7 +41,6 @@ def read_it_all_in(globstring):
         inrates.extend(get_param(configs, "f_in"))
         numin.extend(get_param(configs, "N_in"))
         weights.extend(get_param(configs, "weight"))
-        break
     mnpss = np.array(mnpss)
     kreuz = np.array(kreuz)
     synchs = np.array(synchs)
@@ -62,6 +61,7 @@ def read_it_all_in(globstring):
 
 
 #plt.rcParams['image.cmap'] = 'gray'
+cmap = plt.get_cmap()
 vth = 0.015  # threshold value used in simulations
 tau = 0.01
 mnpss, kreuz, jitters, inrates, numin, weights = read_it_all_in("../npzfiles/*.npz")
@@ -69,6 +69,18 @@ mnpss, kreuz, jitters, inrates, numin, weights = read_it_all_in("../npzfiles/*.n
 # drive and volley peaks
 drive = (inrates*numin*weights*tau).astype("float")
 peaks = (numin*weights).astype("float")
+
+# let's limit simulations to "sane" drive and peak values
+maxdrive = 2*vth
+maxpeaks = 2*vth
+validind = (peaks < maxpeaks) & (drive < maxdrive)
+mnpss, kreuz, jitters, inrates, numin, weights = (mnpss[validind],
+                                                  kreuz[validind],
+                                                  jitters[validind],
+                                                  inrates[validind],
+                                                  numin[validind],
+                                                  weights[validind])
+drive, peaks = drive[validind], peaks[validind]
 
 # get rid of excessively high drive
 #nd_idx = drive <= 0.04
@@ -127,24 +139,27 @@ except OSError:
     pass
 drpre = 0
 plt.figure()
+pmin, pmax = (min(peaks), max(peaks))
 for dr in np.arange(0, max(drive), 0.001):
     idx = (drpre <= drive) & (drive < dr)
+    drpre = dr
     if not any(idx):
         continue
     plt.clf()
-    pkpre = 0
-    fig = plt.scatter(mnpss[idx], kreuz[idx], c=peaks[idx]*1000)
+    fig = plt.scatter(mnpss[idx], kreuz[idx], c=peaks[idx]*1000,
+                      vmin=pmin*1000, vmax=pmax*1000)
     curpeaks = peaks[idx]
     curkreuz = kreuz[idx]
     curmnpss = mnpss[idx]
-    for pk in np.arange(min(curpeaks), max(curpeaks), 0.001):
-        NOT WORKING PROPERLY
-        CONNECT SIMILAR COLOURS (within 1 mV of eachother) WITH A DASHED LINE
+    pkpre = 0
+    for pk in np.arange(min(curpeaks), max(curpeaks), 0.005):
         lineidx = (pkpre <= curpeaks) & (curpeaks < pk)
+        pkpre = pk
         if np.count_nonzero(lineidx) < 2:
             continue
-        plt.plot(curmnpss[lineidx], curkreuz[lineidx], 'k--', figure=fig)
-        pkpre = pk
+        linecolor = cmap((pk-pmin)/(pmax-pmin))
+        plt.plot(curmnpss[lineidx], curkreuz[lineidx], figure=fig,
+                 color=linecolor, linestyle='--')
     cbar = plt.colorbar()
     plt.xlabel(r"$\overline{M}$")
     plt.ylabel(r"$S_{m}$")
@@ -154,7 +169,6 @@ for dr in np.arange(0, max(drive), 0.001):
     filename = "drivefigs/drive{:05d}.png".format(int(dr*1000))
     plt.savefig(filename)
     print("Saved {}...".format(filename))
-    drpre = dr
 
 # make one plot for each peak value (1 mV intervals)
 try:
@@ -163,12 +177,27 @@ except OSError:
     pass
 pkpre = 0
 plt.figure()
+dmin, dmax = (min(drive), max(drive))
 for pk in np.arange(0, max(peaks), 0.001):
     idx = (pkpre <= peaks) & (peaks < pk)
+    pkpre = pk
     if not any(idx):
         continue
     plt.clf()
-    fig = plt.scatter(mnpss[idx], kreuz[idx], c=drive[idx]*1000)
+    fig = plt.scatter(mnpss[idx], kreuz[idx], c=drive[idx]*1000,
+                      vmin=dmin*1000, vmax=pmax*1000)
+    curdrive = drive[idx]
+    curkreuz = kreuz[idx]
+    curmnpss = mnpss[idx]
+    drpre = 0
+    for dr in np.arange(min(curdrive), max(curdrive), 0.005):
+        lineidx = (drpre <= curdrive) & (curdrive < pk)
+        drpre = dr
+        if np.count_nonzero(lineidx) < 2:
+            continue
+        linecolor = cmap((dr-dmin)/(dmax-dmin))
+        plt.plot(curmnpss[lineidx], curkreuz[lineidx], figure=fig,
+                 color=linecolor, linestyle='--')
     cbar = plt.colorbar()
     plt.xlabel(r"$\overline{M}$")
     plt.ylabel(r"$S_{m}$")
@@ -178,5 +207,4 @@ for pk in np.arange(0, max(peaks), 0.001):
     filename = "peakfigs/peak{:05d}.png".format(int(pk*1000))
     plt.savefig(filename)
     print("Saved {}...".format(filename))
-    pkpre = pk
 
