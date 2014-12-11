@@ -7,14 +7,14 @@ import spikerlib as sl
 import numpy as np
 import itertools as it
 import sys
+import multiprocessing as mp
 
 
 def lifsim(n_in, inrate, weight):
-    defaultclock.dt = dt = 0.1*ms
-    sync = np.arange(0, 1.1, 0.1)
-    sigma = np.arange(0, 4.1, 0.5)*ms
+    sync = np.arange(0, 1.1, 0.5)
+    sigma = np.arange(0, 4.1, 2.0)*ms
     inrate = inrate*Hz
-    weight = weight*volt
+    weight = weight*mV
     Vth = 15*mV
     tau = 10*ms
     duration = 5*second
@@ -33,21 +33,20 @@ def lifsim(n_in, inrate, weight):
     inputmons = []
     sync_conf = []
     print("Creating inputs connections and monitors...")
-    for s, j in it.product(sync, sigma):
+    for idx, (s, j) in enumerate(it.product(sync, sigma)):
         sync_conf.append((s, j))
         # inputs
         ing = sl.tools.fast_synchronous_input_gen(n_in, inrate,
                                                   s, j, duration)
         inputgroups.append(ing)
         # connection
-        inc = Connection(ing, neuron, 'V', weight=weight)
+        inc = Connection(ing, neuron[idx], 'V', weight=weight)
         inputconns.append(inc)
         # monitor
         inm = SpikeMonitor(ing)
         inputmons.append(inm)
-        print("\r{}/{}...".format(len(sync_conf), nsims), end="")
+        print("{}/{}...".format(idx, nsims), end="\r")
         sys.stdout.flush()
-    print()
     netw.add(*inputgroups)
     netw.add(*inputconns)
     netw.add(*inputmons)
@@ -62,26 +61,40 @@ def lifsim(n_in, inrate, weight):
     if outmon.nspikes < 2:
         print("Warning: No spikes were fired from any of the simulations")
         return
-    vmon.insert_spikes(outmon, Vth)
+    vmon.insert_spikes(outmon, Vth*3)
     krdists = []
     mnpss = []
     print("Calculating spike train distance and NPSS...")
+    pool = mp.Pool()
+    args = []
     for idx in range(nsims):
-        input_spiketrains = inputmons[idx].spiketimes.values()
-        t, d = sl.metrics.kreuz.multivariate(input_spiketrains,
-                                             0*second, duration,
-                                             int(duration/dt))
-        krdists.append(np.trapz(d, t))
-        print("\r{}.5/{}...".format(len(mnpss), nsims), end="")
+        inspikes = inputmons[idx].spiketimes.values()
+        voltage = vmon[idx]
+        outspikes = outmon[idx]
+        args.append((inspikes, voltage, outspikes, Vth, tau, slope_w, duration))
+    result_iter = pool.imap(calculate_measures, args)
+    krdists = []
+    mnpss = []
+    pool.close()
+    pool.join()
+    for idx, res in enumerate(result_iter, 1):
+        mnpss.append(res[0])
+        krdists.append(res[1])
+        print("{}/{}...".format(idx, nsims), end="\r")
         sys.stdout.flush()
-        npss = sl.tools.npss(vmon[idx], outmon[idx], 0*mV, Vth, tau, slope_w)
-        mnpss.append(mean(npss))
-        print("\r{}.0/{}...".format(len(mnpss), nsims), end="")
-        sys.stdout.flush()
-    print("\nDone!")
+    print("Done!")
     return sync_conf, krdists, mnpss
 
-
+def calculate_measures(args):
+    inspikes, voltage, outspikes, vth, tau, w, duration = args
+    if len(outspikes) < 2:
+        return 0, 0
+    t, d = sl.metrics.kreuz.multivariate(inspikes, 0*second, duration,
+                                         int(duration/ms))
+    krdist = np.trapz(d, t)
+    npss = sl.tools.npss(voltage, outspikes, 0*mV, vth, tau, w)
+    mnpss = mean(npss)
+    return mnpss, krdist
 
 
 if __name__=='__main__':
