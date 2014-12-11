@@ -72,6 +72,10 @@ if __name__=='__main__':
     print("Num inputs:   {}\n"
           "Input rate:   {} Hz\n"
           "Input weight: {} mV".format(Nin, fin, weight))
+    drive = Nin*fin*weight*0.01
+    peak = Nin*weight
+    print("Asymptotic potential:  {} mV\n"
+          "Volley peak potential: {} mV\n".format(drive, peak))
     sconf, krdists, mnpss = lifsim(Nin, fin, weight)
     print("Simulations done. Saving data...")
     filestring = "N{}_f{}_w{}.npz".format(Nin, fin, weight)
