@@ -138,7 +138,7 @@ if __name__=='__main__':
     filestring = "N{}_f{}_w{}.npz".format(Nin, fin, weight)
     ans = "_"
     if os.path.exists(filestring):
-        while ans not in "YyNn":
+        while ans not in "LlOo":
             ans = raw_input("{} already exists. "
                             "(L)oad and plot, "
                             "or (O)verwrite? ".format(filestring))
