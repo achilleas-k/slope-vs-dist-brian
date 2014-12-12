@@ -107,7 +107,7 @@ def plot_results(figname, numin, inrate, inweight, syncconf, kreuz, mnpss):
     #s = syncconf[:,0]
     j = syncconf[:,1]
     for ji in np.unique(j):
-        idx = ji == j
+        idx = (ji == j) & (mnpss > 0) & (kreuz > 0)
         lc = (ji-min(j))/(max(j)-min(j))
         linecolour = plt.get_cmap()(lc)
         plt.plot(mnpss[idx], kreuz[idx], linestyle="--", color=linecolour)
