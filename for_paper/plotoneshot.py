@@ -49,6 +49,11 @@ if __name__=='__main__':
     npzfiles = glob(sys.argv[1])
     print("{} files found".format(len(npzfiles)))
     count = 0
+    allmnpss = []
+    allkrdst = []
+    alldrive = []
+    allpeaks = []
+    allsigma = []
     for npz in npzfiles:
         data = np.load(npz)
         Nin = data["numin"].item()
@@ -57,15 +62,36 @@ if __name__=='__main__':
         sconf = data["syncconf"]
         mnpss = data["mnpss"]
         krdists = data["krdists"]
+        allmnpss.extend(mnpss)
+        allkrdst.extend(krdists)
+        allsigma.extend([sc[1] for sc in sconf])
         print("Num inputs:   {}\n"
               "Input rate:   {} Hz\n"
               "Input weight: {} mV".format(Nin, fin, weight))
         drive = Nin*fin*weight*0.01
         peak = Nin*weight
+        alldrive.extend([drive]*len(mnpss))
+        allpeaks.extend([peak]*len(mnpss))
         print("Asymptotic potential:  {} mV\n"
               "Volley peak potential: {} mV\n".format(drive, peak))
         figname = "N{}_f{}_w{}.png".format(Nin, fin, weight)
-        plot_results(figname, Nin, fin, weight, sconf, krdists, mnpss)
+        #plot_results(figname, Nin, fin, weight, sconf, krdists, mnpss)
         print("Figure {} saved".format(figname))
         count += 1
         print("{}/{} done".format(count, len(npzfiles)))
+    plt.clf()
+    allmnpss = array(allmnpss)
+    allkrdst = array(allkrdst)
+    alldrive = array(alldrive)
+    allpeaks = array(allpeaks)
+    allsigma = array(allsigma)
+    sanedrive = (16 <= alldrive) & (alldrive <= 30)
+    sanepeaks = (16 <= allpeaks) & (allpeaks <= 30)
+    idx = sanedrive & sanepeaks
+    plt.scatter(allmnpss[idx], allkrdst[idx], c=allsigma[idx]*1000)
+    plt.xlabel(r"$\overline{M}$")
+    plt.ylabel(r"$S_{m}$")
+    plt.colorbar()
+    figname = "all_npss_kreuz.png"
+    plt.savefig(figname)
+    print("Saved figure {}".format(figname))
