@@ -2,6 +2,7 @@
 Read in the npz files from multiple oneshot runs and save them as a single npz
 that can be loaded to generate figures using makeplots.py
 """
+import sys
 import numpy as np
 from glob import glob
 
@@ -9,8 +10,6 @@ def read_npz(globstr):
     npzfiles = glob(globstr)
     mnpss = []
     krdists = []
-    drives = []
-    peaks = []
     sync = []
     sigma = []
     weights = []
@@ -33,9 +32,12 @@ def read_npz(globstr):
         sigma.extend([sc[1] for sc in sconf])
         mnpss.extend(data["mnpss"])
         krdists.extend(data["krdists"])
-        drive = Nin*fin*weight*0.01
-        peak = Nin*weight
-        drives.extend([drive]*curlen)
-        peaks.extend([peak]*curlen)
-    assert len(mnpss) == len(krdists) == len(drives) == len(peaks) ==\
-        len(sync) == len(sigma) == len(weights) == len(inrates) == len(numin)
+    assert len(mnpss) == len(krdists) == len(sync) == len(sigma) ==\
+        len(weights) == len(inrates) == len(numin)
+    return (np.array(mnpss), np.array(krdists), np.array(sync), np.array(sigma),
+            np.array(weights), np.array(inrates), np.array(numin))
+
+if __name__=="__main__":
+    globstr = sys.argv[1]
+    mnpss, krdists, sync, sigma, weight, inrates, numin = read_npz(globstr)
+
