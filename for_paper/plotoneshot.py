@@ -75,9 +75,8 @@ if __name__=='__main__':
         allpeaks.extend([peak]*len(mnpss))
         print("Asymptotic potential:  {} mV\n"
               "Volley peak potential: {} mV\n".format(drive, peak))
-        figname = "N{}_f{}_w{}.png".format(Nin, fin, weight)
-        #plot_results(figname, Nin, fin, weight, sconf, krdists, mnpss)
-        print("Figure {} saved".format(figname))
+        figname = "figures/N{}_f{}_w{}.pdf".format(Nin, fin, weight)
+        plot_results(figname, Nin, fin, weight, sconf, krdists, mnpss)
         count += 1
         print("{}/{} done".format(count, len(npzfiles)))
     plt.clf()
@@ -125,5 +124,5 @@ if __name__=='__main__':
     cbar.set_label(r"$\sigma_{in}$ (ms)")
 
     plt.subplots_adjust(wspace=0.2, hspace=0.2)
-    plt.savefig("npss_v_dist_jitter.pdf")
-    plt.savefig("npss_v_dist_jitter.png")
+    plt.savefig("figures/npss_v_dist_jitter.pdf")
+    plt.savefig("figures/npss_v_dist_jitter.png")
