@@ -24,7 +24,7 @@ def plot_results(figname, numin, inrate, inweight, syncconf, kreuz, mnpss):
     peaks = numin*inweight
     syncconf = np.array(syncconf)
     #s = syncconf[:,0]
-    j = syncconf[:,1]
+    j = syncconf[:,1]*1000
     plt.clf()
     for ji in np.unique(j):
         idx = (ji == j) & (mnpss > 0) & (kreuz > 0)
@@ -35,14 +35,15 @@ def plot_results(figname, numin, inrate, inweight, syncconf, kreuz, mnpss):
     plt.scatter(mnpss[nonzero], kreuz[nonzero], c=j[nonzero])
     if (np.count_nonzero(nonzero)):
         cbar = plt.colorbar()
-        cbar.set_label("$\sigma_{in}$")
+        cbar.set_label("$\sigma_{in}$ (mV)")
     plt.axis(xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=2.6)
     plt.xlabel(r"$\overline{M}$")
     plt.ylabel(r"$S_{m}$")
     plt.title(r"$\langle V \rangle$ = {} mV, $\Delta_v$ = {}".format(
         drive, peaks))
-    plt.savefig(figname)
-    print("Saved figure {}".format(figname))
+    plt.savefig(figname+".png")
+    plt.savefig(figname+".pdf")
+    print("Saved figure {} (png and pdf)".format(figname))
 
 if __name__=='__main__':
     print("Setting up ...")
@@ -81,11 +82,12 @@ if __name__=='__main__':
         alldrive.extend([drive]*len(mnpss))
         allpeaks.extend([peak]*len(mnpss))
         print("Asymptotic potential:  {} mV\n"
-              "Volley peak potential: {} mV\n".format(drive, peak))
-        figname = "figures/N{}_f{}_w{}.pdf".format(Nin, fin, weight)
-        #plot_results(figname, Nin, fin, weight, sconf, krdists, mnpss)
+              "Volley peak potential: {} mV".format(drive, peak))
+        figname = "figures/N{}_f{}_w{}".format(Nin, fin, weight).replace(".", "_")
+        plot_results(figname, Nin, fin, weight, sconf, krdists, mnpss)
         count += 1
         print("{}/{} done".format(count, len(npzfiles)))
+        print()
     plt.clf()
     mnpss = np.array(allmnpss)
     kreuz = np.array(allkrdst)
@@ -153,6 +155,8 @@ if __name__=='__main__':
     #idx = saneidx & pjidx
     idx = highidx & saneidx
     plt.scatter(mnpss[idx], kreuz[idx], vmin=0, vmax=vmax, c=colour[idx])
+    print("min kreuz: {}".format(min(kreuz[idx])))
+    print("max mnpss: {}".format(max(mnpss[idx])))
     plt.xlabel(r"$\overline{M}$")
     plt.xticks([0, 0.25, 0.5, 0.75, 1.0], ["", "", 0.5, "",  1.0])
     #plt.ylabel(r"$D_S$")
