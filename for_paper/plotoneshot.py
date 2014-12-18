@@ -25,7 +25,7 @@ def plot_results(figname, numin, inrate, inweight, syncconf, kreuz, mnpss):
     syncconf = np.array(syncconf)
     #s = syncconf[:,0]
     j = syncconf[:,1]*1000
-    plt.clf()
+    plt.figure(figsize=(4, 3))
     for ji in np.unique(j):
         idx = (ji == j) & (mnpss > 0) & (kreuz > 0)
         lc = (ji-min(j))/(max(j)-min(j))
@@ -36,13 +36,14 @@ def plot_results(figname, numin, inrate, inweight, syncconf, kreuz, mnpss):
     if (np.count_nonzero(nonzero)):
         cbar = plt.colorbar()
         cbar.set_label("$\sigma_{in}$ (mV)")
-    plt.axis(xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=2.6)
+    plt.axis(xmin=0, xmax=1, ymin=0, ymax=3)
     plt.xlabel(r"$\overline{M}$")
     plt.ylabel(r"$S_{m}$")
-    plt.title(r"$\langle V \rangle$ = {} mV, $\Delta_v$ = {}".format(
-        drive, peaks))
-    plt.savefig(figname+".png")
-    plt.savefig(figname+".pdf")
+    #plt.title(r"$\langle V \rangle$ = {} mV, $\Delta_v$ = {}".format(
+    #    drive, peaks))
+    plt.savefig(figname+".png", bbox_inches="tight")
+    plt.savefig(figname+".pdf", bbox_inches="tight")
+    plt.close()
     print("Saved figure {} (png and pdf)".format(figname))
 
 if __name__=='__main__':
