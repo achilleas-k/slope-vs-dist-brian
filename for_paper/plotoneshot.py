@@ -54,6 +54,10 @@ if __name__=='__main__':
     alldrive = []
     allpeaks = []
     allsigma = []
+    allsynch = []
+    allinfrq = []
+    allinwgt = []
+    allnumin = []
     for npz in npzfiles:
         data = np.load(npz)
         Nin = data["numin"].item()
@@ -65,6 +69,10 @@ if __name__=='__main__':
         allmnpss.extend(mnpss)
         allkrdst.extend(krdists)
         allsigma.extend([sc[1] for sc in sconf])
+        allsynch.extend([sc[0] for sc in sconf])
+        allnumin.extend([Nin]*len(mnpss))
+        allinfrq.extend([fin]*len(mnpss))
+        allinwgt.extend([weight]*len(mnpss))
         print("Num inputs:   {}\n"
               "Input rate:   {} Hz\n"
               "Input weight: {} mV".format(Nin, fin, weight))
@@ -84,6 +92,10 @@ if __name__=='__main__':
     drive = np.array(alldrive)
     peaks = np.array(allpeaks)
     jitters = np.array(allsigma)
+    sync = np.array(allsynch)
+    numin = np.array(allnumin)
+    weight = np.array(allinwgt)
+    fin = np.array(allinfrq)
     njidx = jitters == 0
     pjidx = jitters > 0
 
@@ -91,10 +103,15 @@ if __name__=='__main__':
     sanepeakidx = (10 < peaks) & (peaks <= 50)
     saneidx = sanedrvidx & sanepeakidx
 
+    print("Plotting results with jitter...")
+    ### PLOT NPSS V DISTANCE WITH JITTER AS COLOUR
     fig = plt.figure("NPSS vs SPIKE-distance with jitter", dpi=100, figsize=(8,6))
+    lowseg, highseg = 0.0001, 0.0021
+    ### All data points
     colour = jitters*1000
+    vmin = min(colour)
     vmax = max(colour)
-    plt.subplot2grid((11,20), (0,0), rowspan=4, colspan=18)
+    plt.subplot2grid((11,30), (0,0), rowspan=4, colspan=26)
     plt.title("(a)")
     idx = saneidx
     allpts = plt.scatter(mnpss[idx], kreuz[idx], vmin=0, vmax=vmax, c=colour[idx])
@@ -103,31 +120,52 @@ if __name__=='__main__':
     plt.axis(xmin=0, xmax=1, ymin=0)
     print("Number of simulations (total) {}".format(np.count_nonzero(idx)))
 
-    plt.subplot2grid((11,20), (6,0), rowspan=4, colspan=8)
+    ### Split three colour bands
+    lowidx = jitters < lowseg
+    mididx = (lowseg <= jitters) & (jitters < highseg)
+    highidx = highseg <= jitters
+    plt.subplot2grid((11,30), (6,0), rowspan=4, colspan=8)
     plt.title("(b)")
-    idx = saneidx & njidx
+    #idx = saneidx & njidx
+    idx = lowidx & saneidx
     njpts = plt.scatter(mnpss[idx], kreuz[idx], vmin=0, vmax=vmax, c=colour[idx])
     plt.xlabel(r"$\overline{M}$")
+    plt.xticks([0, 0.25, 0.5, 0.75, 1.0], ["", "", 0.5, "",  1.0])
     plt.ylabel(r"$D_S$")
     plt.axis(xmin=0, xmax=1, ymin=0)
     print("Number of simulations without jitter {}".format(np.count_nonzero(idx)))
 
-    plt.subplot2grid((11,20), (6,10), rowspan=4, colspan=8)
+    plt.subplot2grid((11,30), (6,9), rowspan=4, colspan=8)
     plt.title("(c)")
-    idx = saneidx & pjidx
+    #idx = saneidx & pjidx
+    idx = mididx & saneidx
     plt.scatter(mnpss[idx], kreuz[idx], vmin=0, vmax=vmax, c=colour[idx])
     locs, labels = plt.yticks()
-    plt.yticks(locs, [])
     plt.xlabel(r"$\overline{M}$")
+    plt.xticks([0, 0.25, 0.5, 0.75, 1.0], ["", "", 0.5, "",  1.0])
     #plt.ylabel(r"$D_S$")
+    plt.yticks(locs, [])
     plt.axis(xmin=0, xmax=1, ymin=0)
-    print("Number of simulations with jitter {}".format(np.count_nonzero(idx)))
+    print("Number of simulations with low jitter {}".format(np.count_nonzero(idx)))
+
+    plt.subplot2grid((11,30), (6,18), rowspan=4, colspan=8)
+    plt.title("(d)")
+    #idx = saneidx & pjidx
+    idx = highidx & saneidx
+    plt.scatter(mnpss[idx], kreuz[idx], vmin=0, vmax=vmax, c=colour[idx])
+    plt.xlabel(r"$\overline{M}$")
+    plt.xticks([0, 0.25, 0.5, 0.75, 1.0], ["", "", 0.5, "",  1.0])
+    #plt.ylabel(r"$D_S$")
+    locs, labels = plt.yticks()
+    plt.yticks(locs, [])
+    plt.axis(xmin=0, xmax=1, ymin=0)
+    print("Number of simulations with high jitter {}".format(np.count_nonzero(idx)))
 
     cax = fig.add_axes([0.85, 0.15, 0.03, 0.75])
     cbar = plt.colorbar(allpts, cax=cax)
     cbar.set_label(r"$\sigma_{in}$ (ms)")
 
-    plt.subplots_adjust(wspace=0.2, hspace=0.2, right=0.87)
+    plt.subplots_adjust(wspace=0.2, hspace=0.2)
     plt.savefig("figures/npss_v_dist_jitter.pdf")
     plt.savefig("figures/npss_v_dist_jitter.png")
 
@@ -298,5 +336,16 @@ if __name__=='__main__':
     plt.savefig("figures/four_case_split.png")
     plt.savefig("figures/four_case_split.pdf")
 
+    print("Parameter ranges for data points used")
+    idx = saneidx
+    print("S_in:            {:3.1f} --- {:3.1f}".format(min(sync[idx]),
+                                                        max(sync[idx])))
+    print("sigma_in:        {:3.1f} --- {:3.1f} (mV)".format(min(jitters[idx])*1000,
+                                                             max(jitters[idx])*1000))
+    print("Num inputs:      {:3d} --- {:3d}".format(min(numin[idx]), max(numin[idx])))
+    print("Input weight:    {:3.1f} --- {:3.1f} (mV)".format(min(weight[idx]),
+                                                             max(weight[idx])))
+    print("Input rate:      {:3d} --- {:3d} (Hz)".format(min(fin[idx]),
+                                                    max(fin[idx])))
     print("Done")
 
