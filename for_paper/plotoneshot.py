@@ -338,14 +338,15 @@ if __name__=='__main__':
 
     print("Parameter ranges for data points used")
     idx = saneidx
-    print("S_in:            {:3.1f} --- {:3.1f}".format(min(sync[idx]),
-                                                        max(sync[idx])))
-    print("sigma_in:        {:3.1f} --- {:3.1f} (mV)".format(min(jitters[idx])*1000,
-                                                             max(jitters[idx])*1000))
-    print("Num inputs:      {:3d} --- {:3d}".format(min(numin[idx]), max(numin[idx])))
-    print("Input weight:    {:3.1f} --- {:3.1f} (mV)".format(min(weight[idx]),
-                                                             max(weight[idx])))
-    print("Input rate:      {:3d} --- {:3d} (Hz)".format(min(fin[idx]),
-                                                    max(fin[idx])))
+    print("S_in:            {:3.1f} --- {:3.1f}".format(
+        min(sync[idx]), max(sync[idx])))
+    print("sigma_in:        {:3.1f} --- {:3.1f} (mV)".format(
+        min(jitters[idx])*1000, max(jitters[idx])*1000))
+    print("Num inputs:      {:3d} --- {:3d}".format(
+        min(numin[idx]), max(numin[idx])))
+    print("Input weight:    {:3.1f} --- {:3.1f} (mV)".format(
+        min(weight[idx]), max(weight[idx])))
+    print("Input rate:      {:3d} --- {:3d} (Hz)".format(
+        min(fin[idx]), max(fin[idx])))
     print("Done")
 
