@@ -338,8 +338,8 @@ if __name__=='__main__':
     cbar = plt.colorbar(allpts, cax=cax)
     cbar.set_label(r"$\sigma_{in}$ (ms)")
 
-    plt.savefig("figures/four_case_split.png")
-    plt.savefig("figures/four_case_split.pdf")
+    plt.savefig("figures/case_split.png")
+    plt.savefig("figures/case_split.pdf")
 
     print("Parameter ranges for data points used")
     idx = saneidx
