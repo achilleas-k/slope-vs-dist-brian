@@ -35,10 +35,10 @@ def plot_results(figname, numin, inrate, inweight, syncconf, kreuz, mnpss):
     plt.scatter(mnpss[nonzero], kreuz[nonzero], c=j[nonzero])
     if (np.count_nonzero(nonzero)):
         cbar = plt.colorbar()
-        cbar.set_label("$\sigma_{in}$ (mV)")
+        cbar.set_label("$\sigma_{in}$ (ms)")
     plt.axis(xmin=0, xmax=1, ymin=0, ymax=3)
     plt.xlabel(r"$\overline{M}$")
-    plt.ylabel(r"$S_{m}$")
+    plt.ylabel(r"$D_S$")
     #plt.title(r"$\langle V \rangle$ = {} mV, $\Delta_v$ = {}".format(
     #    drive, peaks))
     plt.savefig(figname+".png", bbox_inches="tight")
@@ -345,7 +345,7 @@ if __name__=='__main__':
     idx = saneidx
     print("S_in:            {:3.1f} --- {:3.1f}".format(
         min(sync[idx]), max(sync[idx])))
-    print("sigma_in:        {:3.1f} --- {:3.1f} (mV)".format(
+    print("sigma_in:        {:3.1f} --- {:3.1f} (ms)".format(
         min(jitters[idx])*1000, max(jitters[idx])*1000))
     print("Num inputs:      {:3d} --- {:3d}".format(
         min(numin[idx]), max(numin[idx])))
