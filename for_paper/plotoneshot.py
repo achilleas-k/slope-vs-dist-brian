@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 from glob import glob
+import os
 
 Vth = 15.0
 tau = 0.01
@@ -15,6 +16,17 @@ greytrunc_dict = {'red':   ((0.0, 0.0, 0.0), (1.0, 0.8, 0.8)),
                   'blue':  ((0.0, 0.0, 0.0), (1.0, 0.8, 0.8))}
 plt.register_cmap(name="greytrunc", data=greytrunc_dict)
 plt.set_cmap("greytrunc")
+
+directories = {0: "figures/subsub",
+               1: "figures/subsup",
+               2: "figures/supsub",
+               3: "figures/supsup"}
+
+for dirname in directories.values():
+    try:
+        os.makedirs(dirname)
+    except OSError:
+        pass
 
 
 def plot_results(figname, numin, inrate, inweight, syncconf, kreuz, mnpss):
@@ -41,8 +53,10 @@ def plot_results(figname, numin, inrate, inweight, syncconf, kreuz, mnpss):
     plt.ylabel(r"$D_S$")
     #plt.title(r"$\langle V \rangle$ = {} mV, $\Delta_v$ = {}".format(
     #    drive, peaks))
-    plt.savefig(figname+".png", bbox_inches="tight")
-    plt.savefig(figname+".pdf", bbox_inches="tight")
+    case = int(drive > Vth)*2+int(peaks > Vth)
+    dirname = directories[case]
+    plt.savefig(os.path.join(dirname, figname)+".png", bbox_inches="tight")
+    plt.savefig(os.path.join(dirname, figname)+".pdf", bbox_inches="tight")
     plt.close()
     print("Saved figure {} (png and pdf)".format(figname))
 
@@ -84,7 +98,7 @@ if __name__=='__main__':
         allpeaks.extend([peak]*len(mnpss))
         print("Asymptotic potential:  {} mV\n"
               "Volley peak potential: {} mV".format(drive, peak))
-        figname = "figures/N{}_f{}_w{}".format(Nin, fin, weight).replace(".", "_")
+        figname = "N{}_f{}_w{}".format(Nin, fin, weight).replace(".", "_")
         plot_results(figname, Nin, fin, weight, sconf, krdists, mnpss)
         count += 1
         print("{}/{} done".format(count, len(npzfiles)))
