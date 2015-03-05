@@ -242,6 +242,8 @@ if __name__=='__main__':
 
     cax = fig.add_axes([0.85, 0.15, 0.03, 0.75])
     cbar = plt.colorbar(allpts, cax=cax)
+    ticks = range(0, 101, 5)
+    cbar.set_ticks(ticks)
     cbar.set_label(r"$\langle V \rangle$ (mV)")
 
     plt.subplots_adjust(wspace=0.2, hspace=0.2)
@@ -302,6 +304,8 @@ if __name__=='__main__':
 
     cax = fig.add_axes([0.85, 0.15, 0.03, 0.75])
     cbar = plt.colorbar(allpts, cax=cax)
+    ticks = range(0, 101, 5)
+    cbar.set_ticks(ticks)
     cbar.set_label(r"$\Delta_v$ (mV)")
 
     plt.subplots_adjust(wspace=0.2, hspace=0.2)
