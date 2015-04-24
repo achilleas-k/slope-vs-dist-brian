@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import spikerlib as sl
 import random as rnd
+import pyspike as spk
 
 
 def draw_the_plots(N, spiketrains, avgbiv, multiv):
@@ -77,6 +78,13 @@ multiv = sl.metrics.kreuz.multivariate(spiketrains, start, end, 2000)
 
 print("Drawing plots ...")
 draw_the_plots(N, spiketrains, avgbiv, multiv)
-plt.subplot(3,1,2)
 
+for idx in range(len(spiketrains)):
+    spiketrains[idx] = spk.add_auxiliary_spikes(spiketrains[idx], end)
+
+print("Running pyspike function ...")
+f = spk.spike_profile_multi(spiketrains)
+plt.figure()
+plt.plot(*(f.get_plottable_data()))
+# display all figures
 plt.show()
