@@ -49,8 +49,8 @@ def plot_results(figname, numin, inrate, inweight, syncconf, kreuz, mnpss):
         cbar = plt.colorbar()
         cbar.set_label("$\sigma_{in}$ (ms)")
     plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.55)
-    plt.xlabel(r"$\overline{M}$")
-    plt.ylabel(r"$D_S$")
+    plt.ylabel(r"$\overline{M}$")
+    plt.xlabel(r"$D_S$")
     #plt.title(r"$V_{\infty}$ = {} mV, $\Delta_v$ = {}".format(
     #    drive, peaks))
     case = int(drive > Vth)*2+int(peaks > Vth)
