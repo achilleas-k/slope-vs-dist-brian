@@ -316,7 +316,7 @@ if __name__=='__main__':
     colour = jitters*1000
     ### case 1: low peak, low drive
     case_one_idx = (peaks < Vth) & (drive < Vth)
-    plt.subplot(3, 1, 1)
+    plt.subplot(4, 1, 1)
     idx = case_one_idx & saneidx
     allpts = plt.scatter(kreuz[idx], mnpss[idx], c=colour[idx])
     plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.55)
@@ -329,7 +329,7 @@ if __name__=='__main__':
     ### case 2: high peak, low drive
     case_two_idx = (peaks >= Vth) & (drive < Vth)
     idx = case_two_idx & saneidx
-    plt.subplot(3, 1, 2)
+    plt.subplot(4, 1, 2)
     plt.scatter(kreuz[idx], mnpss[idx], c=colour[idx])
     plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.55)
     plt.title("(b)")
@@ -338,15 +338,24 @@ if __name__=='__main__':
     plt.xticks(locs, [])
     print("Number of simulations in case 2 {}".format(np.count_nonzero(idx)))
 
-    ### case 3 has 0 items
+    ### case 3: low peak, high drive
+    case_three_idx = (peaks < Vth) & (drive >= Vth)
+    idx = case_three_idx & saneidx
+    plt.subplot(4, 1, 4)
+    plt.scatter(kreuz[idx], mnpss[idx], c=colour[idx])
+    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.55)
+    plt.title("(c)")
+    plt.ylabel(r"$\overline{M}$")
+    print("Number of simulations in case 3 {}".format(np.count_nonzero(idx)))
+
     ### case 4: high peak, high drive
     case_four_idx = (peaks >= Vth) & (drive >= Vth)
     idx = case_four_idx & saneidx
-    plt.subplot(3, 1, 3)
+    plt.subplot(4, 1, 3)
     plt.scatter(kreuz[idx], mnpss[idx], c=colour[idx])
     plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.55)
     plt.ylabel(r"$\overline{M}$")
-    plt.title("(c)")
+    plt.title("(d)")
     plt.xlabel(r"$D_S$")
     print("Number of simulations in case 4 {}".format(np.count_nonzero(idx)))
 
