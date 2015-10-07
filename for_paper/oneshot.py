@@ -163,7 +163,7 @@ if __name__=='__main__':
     else:
         raise Exception("WAT")
     figname = "N{}_f{}_w{}.png".format(Nin, fin, weight)
-    plot_results(figname, Nin, fin, weight, sconf, krdists, mnpss)
+    # plot_results(figname, Nin, fin, weight, sconf, krdists, mnpss)
     print("Simulations done. Saving data...")
     np.savez(filestring,
              numin=Nin,
