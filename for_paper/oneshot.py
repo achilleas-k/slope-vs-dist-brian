@@ -93,6 +93,11 @@ def calculate_measures(args):
         return 0, 0
     t, d = sl.metrics.kreuz.multivariate(inspikes, 0*second, duration,
                                          int(duration/ms))
+    # NOTE: krdist should be divided by duration, but since we neglected to do
+    # this in the old results, we're keeping it as is here too for
+    # compatibility. The value is divided by the duration (which is common for
+    # all simulations) in `plotoneshot.py` where the data is loaded and the
+    # figures are plotted.
     krdist = np.trapz(d, t)
     npss = sl.tools.npss(voltage, outspikes, 0*mV, vth, tau, w)
     mnpss = mean(npss)
