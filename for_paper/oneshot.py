@@ -143,6 +143,7 @@ if __name__=='__main__':
     filestring = "N{}_f{}_w{}.npz".format(Nin, fin, weight)
     ans = "_"
     if os.path.exists(filestring):
+        sys.exit("Simulation data already exists. Skipping.")
         while ans not in "LlOo":
             ans = raw_input("{} already exists. "
                             "(L)oad and plot, "
