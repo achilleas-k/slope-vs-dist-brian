@@ -48,7 +48,7 @@ def plot_results(figname, numin, inrate, inweight, syncconf, kreuz, mnpss):
     if (np.count_nonzero(nonzero)):
         cbar = plt.colorbar()
         cbar.set_label("$\sigma_{in}$ (ms)")
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     plt.xlabel(r"$D_S$")
     plt.ylabel(r"$\overline{M}$")
     #plt.title(r"$V_{\infty}$ = {} mV, $\Delta_v$ = {}".format(
@@ -136,7 +136,7 @@ if __name__=='__main__':
     allpts = plt.scatter(kreuz[idx], mnpss[idx], vmin=0, vmax=vmax, c=colour[idx])
     plt.xlabel(r"$D_S$")
     plt.ylabel(r"$\overline{M}$")
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     print("Number of simulations (total) {}".format(np.count_nonzero(idx)))
 
     ### Split three colour bands
@@ -151,7 +151,7 @@ if __name__=='__main__':
     plt.xlabel(r"$D_S$")
     plt.xticks([0, 0.125, 0.25, 0.375, 0.5], ["", "", 0.25, "",  0.5])
     plt.ylabel(r"$\overline{M}$")
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     print("Number of simulations without jitter {}".format(np.count_nonzero(idx)))
 
     plt.subplot2grid((11,30), (6,9), rowspan=4, colspan=8)
@@ -164,7 +164,7 @@ if __name__=='__main__':
     plt.xticks([0, 0.125, 0.25, 0.375, 0.5], ["", "", 0.25, "",  0.5])
     #plt.ylabel(r"$\overline{M}$")
     plt.yticks(locs, [])
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     print("Number of simulations with low jitter {}".format(np.count_nonzero(idx)))
 
     plt.subplot2grid((11,30), (6,18), rowspan=4, colspan=8)
@@ -179,7 +179,7 @@ if __name__=='__main__':
     #plt.ylabel(r"$\overline{M}$")
     locs, labels = plt.yticks()
     plt.yticks(locs, [])
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     print("Number of simulations with high jitter {}".format(np.count_nonzero(idx)))
 
     cax = fig.add_axes([0.85, 0.15, 0.03, 0.75])
@@ -204,7 +204,7 @@ if __name__=='__main__':
     allpts = plt.scatter(kreuz[idx], mnpss[idx], vmin=vmin, vmax=vmax, c=colour[idx])
     plt.xlabel(r"$D_S$")
     plt.ylabel(r"$\overline{M}$")
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
 
     ### Split three colour bands
     lowidx = drive < lowseg
@@ -217,7 +217,7 @@ if __name__=='__main__':
     plt.xlabel(r"$D_S$")
     plt.ylabel(r"$\overline{M}$")
     plt.xticks([0, 0.125, 0.25, 0.375, 0.5], ["", "", 0.25, "",  0.5])
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     print("Number of simulations with low drive {}".format(np.count_nonzero(idx)))
 
     plt.subplot2grid((11,30), (6,9), rowspan=4, colspan=8)
@@ -228,7 +228,7 @@ if __name__=='__main__':
     plt.xticks([0, 0.125, 0.25, 0.375, 0.5], ["", "", 0.25, "",  0.5])
     locs, labels = plt.yticks()
     plt.yticks(locs, [])
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     print("Number of simulations with mid drive {}".format(np.count_nonzero(idx)))
 
     plt.subplot2grid((11,30), (6,18), rowspan=4, colspan=8)
@@ -239,7 +239,7 @@ if __name__=='__main__':
     plt.xticks([0, 0.125, 0.25, 0.375, 0.5], ["", "", 0.25, "",  0.5])
     locs, labels = plt.yticks()
     plt.yticks(locs, [])
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     print("Number of simulations with high drive {}".format(np.count_nonzero(idx)))
 
     cax = fig.add_axes([0.85, 0.15, 0.03, 0.75])
@@ -266,7 +266,7 @@ if __name__=='__main__':
     allpts = plt.scatter(kreuz[idx], mnpss[idx], vmin=vmin, vmax=vmax, c=colour[idx])
     plt.xlabel(r"$D_S$")
     plt.ylabel(r"$\overline{M}$")
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
 
     ### Split three colour bands
     lowidx = peaks < lowseg
@@ -279,7 +279,7 @@ if __name__=='__main__':
     plt.xlabel(r"$D_S$")
     plt.ylabel(r"$\overline{M}$")
     plt.xticks([0, 0.125, 0.25, 0.375, 0.5], ["", "", 0.25, "",  0.5])
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     print("Number of simulations with low peaks {}".format(np.count_nonzero(idx)))
 
     plt.subplot2grid((11,30), (6,9), rowspan=4, colspan=8)
@@ -290,7 +290,7 @@ if __name__=='__main__':
     plt.xticks([0, 0.125, 0.25, 0.375, 0.5], ["", "", 0.25, "",  0.5])
     locs, labels = plt.yticks()
     plt.yticks(locs, [])
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     print("Number of simulations with mid peaks {}".format(np.count_nonzero(idx)))
 
     plt.subplot2grid((11,30), (6,18), rowspan=4, colspan=8)
@@ -301,7 +301,7 @@ if __name__=='__main__':
     plt.xticks([0, 0.125, 0.25, 0.375, 0.5], ["", "", 0.25, "",  0.5])
     locs, labels = plt.yticks()
     plt.yticks(locs, [])
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     print("Number of simulations with high peaks {}".format(np.count_nonzero(idx)))
 
     cax = fig.add_axes([0.85, 0.15, 0.03, 0.75])
@@ -321,7 +321,7 @@ if __name__=='__main__':
     plt.subplot(4, 1, 1)
     idx = case_one_idx & saneidx
     allpts = plt.scatter(kreuz[idx], mnpss[idx], c=colour[idx])
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     plt.title("(a)")
     plt.ylabel("$\overline{M}$")
     plt.xticks([0, 0.1, 0.2, 0.3, 0.4, 0.5], [])
@@ -333,7 +333,7 @@ if __name__=='__main__':
     idx = case_two_idx & saneidx
     plt.subplot(4, 1, 2)
     plt.scatter(kreuz[idx], mnpss[idx], c=colour[idx])
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     plt.title("(b)")
     plt.ylabel("$\overline{M}$")
     plt.xticks([0, 0.1, 0.2, 0.3, 0.4, 0.5], [])
@@ -345,7 +345,7 @@ if __name__=='__main__':
     idx = case_three_idx & saneidx
     plt.subplot(4, 1, 3)
     plt.scatter(kreuz[idx], mnpss[idx], c=colour[idx])
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     plt.title("(c)")
     plt.ylabel(r"$\overline{M}$")
     plt.xticks([0, 0.1, 0.2, 0.3, 0.4, 0.5], [])
@@ -357,7 +357,7 @@ if __name__=='__main__':
     idx = case_four_idx & saneidx
     plt.subplot(4, 1, 4)
     plt.scatter(kreuz[idx], mnpss[idx], c=colour[idx])
-    plt.axis(ymin=0, ymax=1, xmin=0, xmax=0.51)
+    plt.axis(ymin=0, ymax=1, xmin=-0.01, xmax=0.51)
     plt.xticks([0, 0.1, 0.2, 0.3, 0.4, 0.5])
     plt.yticks([0, 0.25, 0.5, 0.75, 1.0], [0, "", 0.5, "", 1.0])
     plt.ylabel(r"$\overline{M}$")
